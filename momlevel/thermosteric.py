@@ -124,9 +124,7 @@ def thermosteric(
             dset[temp_varname].isel({time_dim: 0}).squeeze(),
             reference_so,
             vertical_coord,
-            input_core_dims=[["yh", "xh"], ["yh", "xh"], []],
-            output_core_dims=[("yh", "xh")],
-            dask="parallelized",
+            dask="allowed",
         )
         reference_rho.attrs = {
             "long_name": "Reference in-situ density",
@@ -148,9 +146,7 @@ def thermosteric(
         dset[temp_varname],
         reference_so,
         vertical_coord,
-        input_core_dims=[["yh", "xh"], ["yh", "xh"], []],
-        output_core_dims=[("yh", "xh")],
-        dask="parallelized",
+        dask="allowed",
     )
 
     # calculate the expansion coefficient for each grid cell
