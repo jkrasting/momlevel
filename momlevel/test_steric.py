@@ -1,6 +1,6 @@
 import xarray as xr
 import numpy as np
-from .thermosteric import thermosteric
+from .steric import steric, thermosteric, halosteric
 from .eos.wright import wright
 
 np.random.seed(123)
@@ -31,8 +31,8 @@ dset = xr.Dataset(
 dset = dset.assign_coords({"time": time, "z_l": z_l, "yh": yh, "xh": xh})
 
 
-def test_thermosteric_broadcast():
-    result = thermosteric(dset)
+def test_steric_broadcast():
+    result = steric(dset)
     reference = float(result["reference_rho"][1, 2, 3])
     rho = wright(
         float(dset["thetao"][0, 1, 2, 3]),
@@ -40,6 +40,26 @@ def test_thermosteric_broadcast():
         float(dset["z_l"][1]) * 1.0e4,
     )
     assert np.allclose(reference, rho)
+
+
+def test_halosteric_values():
+    result = halosteric(dset).sum()
+    assert np.allclose(result["reference_so"], 4386.684378216)
+    assert np.allclose(result["reference_vol"], 125401.862523944)
+    assert np.allclose(result["reference_rho"], 128880.6037745114)
+    assert np.allclose(result["reference_height"], 1230.16465627079)
+    assert np.allclose(result["expansion_coeff"], 0.079859382545713)
+    assert np.allclose(result["halosteric"], 0.7438560821420365)
+
+
+def test_steric_values():
+    result = steric(dset).sum()
+    assert np.allclose(result["reference_so"], 4386.684378216)
+    assert np.allclose(result["reference_vol"], 125401.862523944)
+    assert np.allclose(result["reference_rho"], 128880.6037745114)
+    assert np.allclose(result["reference_height"], 1230.16465627079)
+    assert np.allclose(result["expansion_coeff"], 0.0321479462294750)
+    assert np.allclose(result["steric"], 0.2186699101982375)
 
 
 def test_thermosteric_values():

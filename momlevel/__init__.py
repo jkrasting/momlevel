@@ -1,2 +1,2 @@
 from . import eos
-from .thermosteric import thermosteric
+from .steric import halosteric, steric, thermosteric

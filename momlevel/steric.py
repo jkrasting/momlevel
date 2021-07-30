@@ -3,7 +3,7 @@ import xarray as xr
 import momlevel.eos as eos
 
 
-def thermosteric(
+def steric(
     dset,
     reference=None,
     temp_varname="thetao",
@@ -14,6 +14,7 @@ def thermosteric(
     vert_coord="z_l",
     time_dim="time",
     equation_of_state="wright",
+    variant="steric",
 ):
     """Calculates the thermosteric sea level change and other
     associated quantities relative to a known reference state.
@@ -37,7 +38,7 @@ def thermosteric(
         and cell area [areacello]
     reference : xarray.Dataset, optional
         Time-invariant (i.e. single record) of 3-dimensional
-        salinity, volume, and density [rho] to use as the
+        temperature, salinity, volume, and density [rho] to use as the
         reference state. If not supplied, the first time record
         of the input dataset is used as the reference state,
         by default None
@@ -58,6 +59,9 @@ def thermosteric(
     equation_of_state : str, optional
         Equation of state of sea water to use for calculating
         in-situ density, by default "wright"
+    variant : str, optional
+        Optionally calculate "thermosteric" or "halosteric"
+        change, by default "steric"
 
     Returns
     -------
@@ -70,46 +74,63 @@ def thermosteric(
 
     # figure out what to use for the reference fields
     if reference is None:
+        reference_thetao = None
         reference_so = None
         reference_vol = None
         reference_rho = None
     else:
+        reference_rho = (
+            reference[rho_varname] if rho_varname in reference.variables else None
+        )
+
         reference_so = (
             reference[salt_varname] if salt_varname in reference.variables else None
+        )
+
+        reference_thetao = (
+            reference[temp_varname] if temp_varname in reference.variables else None
         )
 
         reference_vol = (
             reference[vol_varname] if vol_varname in reference.variables else None
         )
 
-        reference_rho = (
-            reference[rho_varname] if rho_varname in reference.variables else None
-        )
-
-        if any(x is None for x in [reference_so, reference_vol, reference_rho]):
+        if any(
+            x is None
+            for x in [reference_thetao, reference_so, reference_vol, reference_rho]
+        ):
             raise RuntimeError("Supplied reference dataset is incomplete")
 
     # use reference volume and salinity fields from existing dataset if not defined
+    reference_thetao = (
+        dset[temp_varname].isel({time_dim: 0})
+        if reference_thetao is None
+        else reference_thetao
+    )
+    reference_so = (
+        dset[salt_varname].isel({time_dim: 0}) if reference_so is None else reference_so
+    )
     reference_vol = (
         dset[vol_varname].isel({time_dim: 0})
         if reference_vol is None
         else reference_vol
     )
-    reference_so = (
-        dset[salt_varname].isel({time_dim: 0}) if reference_so is None else reference_so
-    )
 
     # remove any singleton dimensions
-    reference_vol = reference_vol.squeeze()
+    reference_thetao = reference_thetao.squeeze()
     reference_so = reference_so.squeeze()
+    reference_vol = reference_vol.squeeze()
 
     # sanity check that a time dimension is not present
     assert (
-        time_dim not in reference_vol.dims
-    ), "Reference volume is a state, it cannot contain a time dimension"
+        time_dim not in reference_thetao.dims
+    ), "Reference temperature is a state, it cannot contain a time dimension"
     assert (
         time_dim not in reference_so.dims
     ), "Reference salinity is a state, it cannot contain a time dimension"
+    assert (
+        time_dim not in reference_vol.dims
+    ), "Reference volume is a state, it cannot contain a time dimension"
 
     # determine the equation of state to use
     equation_of_state = eos.__dict__[equation_of_state]
@@ -121,7 +142,7 @@ def thermosteric(
     if reference_rho is None:
         reference_rho = xr.apply_ufunc(
             equation_of_state,
-            dset[temp_varname].isel({time_dim: 0}).squeeze(),
+            reference_thetao,
             reference_so,
             vertical_coord,
             dask="allowed",
@@ -139,12 +160,20 @@ def thermosteric(
     reference_height = reference_vol / cell_area
     reference_height.attrs = {"long_name": "Reference column height", "units": "m"}
 
-    # calculate density as function of only changing temperature; hold salinity
-    # constant at the reference value
+    if variant == "thermosteric":
+        temperature = dset[temp_varname]
+        salinity = reference_so
+    elif variant == "halosteric":
+        temperature = reference_thetao
+        salinity = dset[salt_varname]
+    elif variant == "steric":
+        temperature = dset[temp_varname]
+        salinity = dset[salt_varname]
+
     rho = xr.apply_ufunc(
         equation_of_state,
-        dset[temp_varname],
-        reference_so,
+        temperature,
+        salinity,
         vertical_coord,
         dask="allowed",
     )
@@ -154,10 +183,13 @@ def thermosteric(
     expansion_coeff = expansion_coeff.transpose(*(time_dim, ...))
     expansion_coeff.attrs = {"long_name": "Expansion coefficient"}
 
-    # calculate thermosteric sl
-    thermosteric = (reference_height * expansion_coeff).sum(dim=vert_coord)
-    thermosteric = thermosteric.transpose(*(time_dim, ...))
-    thermosteric.attrs = {"long_name": "Thermosteric column height", "units": "m"}
+    # calculate steric sl
+    sealevel = (reference_height * expansion_coeff).sum(dim=vert_coord)
+    sealevel = sealevel.transpose(*(time_dim, ...))
+    sealevel.attrs = {
+        "long_name": f"{variant.capitalize()} column height",
+        "units": "m",
+    }
 
     # return an Xarray Dataset with the results
     result = xr.Dataset()
@@ -166,8 +198,16 @@ def thermosteric(
     result["reference_rho"] = reference_rho.where(reference_vol.notnull())
     result["reference_height"] = reference_height.where(reference_vol.notnull())
     result["expansion_coeff"] = expansion_coeff.where(reference_vol.notnull())
-    result["thermosteric"] = thermosteric.where(
-        reference_vol.isel({vert_coord: 0}).notnull()
-    )
+    result[variant] = sealevel.where(reference_vol.isel({vert_coord: 0}).notnull())
 
+    return result
+
+
+def halosteric(*args, **kwargs):
+    result = steric(*args, **kwargs, variant="halosteric")
+    return result
+
+
+def thermosteric(*args, **kwargs):
+    result = steric(*args, **kwargs, variant="thermosteric")
     return result
