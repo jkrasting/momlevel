@@ -22,14 +22,6 @@ def wright(T, S, p):
         Sea water in-situ density in kg m-3
     """
 
-    #T.load()
-    #S.load()
-    #p.load()
-
-    # p needs to be the right-most axis
-    #T = np.swapaxes(T, -3, -1)
-    #S = np.swapaxes(S, -3, -1)
-
     a0 = 7.057924e-4
     a1 = 3.480336e-7
     a2 = -1.112733e-7
@@ -51,7 +43,5 @@ def wright(T, S, p):
     lam = c0 + c4 * S + T * (c1 + T * (c2 + c3 * T) + c5 * S)
     I_denom = 1.0 / (lam + al0 * (p + p0))
     result = (p + p0) * I_denom
-
-    #result = np.swapaxes(result, -3, -1)
 
     return result
