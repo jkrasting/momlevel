@@ -130,3 +130,6 @@ dmypy.json
 
 # Dask
 dask-worker-space/
+
+#Pycharm
+.idea

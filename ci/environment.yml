@@ -1,0 +1,10 @@
+name: testing
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python
+  - numpy>=1.21.0
+  - pip
+  - pytest
+  - xarray>=0.20.0
