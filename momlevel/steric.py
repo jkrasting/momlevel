@@ -11,10 +11,11 @@ def steric(
     vol_varname="volcello",
     rho_varname="rho",
     area_varname="areacello",
-    vert_coord="z_l",
+    zdim="z_l",
     time_dim="time",
     equation_of_state="wright",
     variant="steric",
+    domain="local",
 ):
     """Calculates the thermosteric sea level change and other
     associated quantities relative to a known reference state.
@@ -52,7 +53,7 @@ def steric(
         In-situ density variable name, by default "rho"
     area_varname : str, optional
         Cell area variable name, by default "areacello"
-    vert_coord : str, optional
+    zdim : str, optional
         Vertical coordinate name, by default "z_l"
     time_dim : str, optional
         Time dimension name, by default "time"
@@ -62,6 +63,9 @@ def steric(
     variant : str, optional
         Optionally calculate "thermosteric" or "halosteric"
         change, by default "steric"
+    domain : str, optional
+        Optionally calculate "global" or "local" steric
+        contributions to sea level change, by default "local"
 
     Returns
     -------
@@ -71,6 +75,12 @@ def steric(
 
     # get cell area
     cell_area = dset[area_varname]
+
+    # determine the equation of state to use
+    equation_of_state = eos.__dict__[equation_of_state]
+
+    # approximate pressure from depth coordinate
+    vertical_coord = dset[zdim] * 1.0e4
 
     # figure out what to use for the reference fields
     if reference is None:
@@ -132,12 +142,6 @@ def steric(
         time_dim not in reference_vol.dims
     ), "Reference volume is a state, it cannot contain a time dimension"
 
-    # determine the equation of state to use
-    equation_of_state = eos.__dict__[equation_of_state]
-
-    # approximate pressure from depth coordinate
-    vertical_coord = dset[vert_coord] * 1.0e4
-
     # calculate reference density if it is not present
     if reference_rho is None:
         reference_rho = xr.apply_ufunc(
@@ -147,19 +151,23 @@ def steric(
             vertical_coord,
             dask="allowed",
         )
-        reference_rho.attrs = {
-            "long_name": "Reference in-situ density",
-            "units": "kg m-3",
-        }
+
+    reference_rho.attrs = {
+        "long_name": "Reference in-situ density",
+        "units": "kg m-3",
+    }
 
     assert (
         time_dim not in reference_rho.dims
     ), "Reference density is a state, it cannot contain a time dimension"
 
-    # calculate reference height for each grid cell
-    reference_height = reference_vol / cell_area
-    reference_height.attrs = {"long_name": "Reference column height", "units": "m"}
+    # update reference state if global mean requested
+    if domain == "global":
+        global_reference_vol = reference_vol.sum()
+        global_mass = (reference_rho * reference_vol).sum()
+        global_reference_rho = global_mass / global_reference_vol
 
+    # -- Calculate in-situ density
     if variant == "thermosteric":
         temperature = dset[temp_varname]
         salinity = reference_so
@@ -178,27 +186,50 @@ def steric(
         dask="allowed",
     )
 
-    # calculate the expansion coefficient for each grid cell
-    expansion_coeff = np.log(reference_rho / rho)
-    expansion_coeff = expansion_coeff.transpose(*(time_dim, ...))
-    expansion_coeff.attrs = {"long_name": "Expansion coefficient"}
+    ## calculate the expansion coefficient for each grid cell
+    if domain == "global":
+        mass = rho * reference_vol
+        global_mass = mass.sum(tuple([x for x in mass.dims if x != time_dim]))
+        expansion_coeff = np.log(
+            global_reference_rho / (global_mass / global_reference_vol)
+        )
+    else:
+        expansion_coeff = np.log(reference_rho / rho)
+        expansion_coeff = expansion_coeff.transpose(*(time_dim, ...))
+        expansion_coeff.attrs = {"long_name": "Expansion coefficient"}
+
+    # calculate reference height and steric sea level change
+    if domain == "global":
+        reference_height = reference_vol.sum() / cell_area.sum()
+        sealevel = reference_height * expansion_coeff
+    else:
+        reference_height = reference_vol / cell_area
+        sealevel = (reference_height * expansion_coeff).sum(dim=zdim)
+    reference_height.attrs = {"long_name": "Reference column height", "units": "m"}
 
     # calculate steric sl
-    sealevel = (reference_height * expansion_coeff).sum(dim=vert_coord)
     sealevel = sealevel.transpose(*(time_dim, ...))
     sealevel.attrs = {
-        "long_name": f"{variant.capitalize()} column height",
+        "long_name": f"{variant.capitalize()} column height (eta)",
         "units": "m",
     }
 
     # return an Xarray Dataset with the results
     result = xr.Dataset()
+    result["reference_thetao"] = reference_thetao
     result["reference_so"] = reference_so
     result["reference_vol"] = reference_vol
+    result["reference_rho"] = reference_rho
     result["reference_rho"] = reference_rho.where(reference_vol.notnull())
     result["reference_height"] = reference_height.where(reference_vol.notnull())
     result["expansion_coeff"] = expansion_coeff.where(reference_vol.notnull())
-    result[variant] = sealevel.where(reference_vol.isel({vert_coord: 0}).notnull())
+
+    if domain == "global":
+        result["global_reference_vol"] = global_reference_vol
+        result["global_reference_rho"] = global_reference_rho
+        result[variant] = sealevel
+    else:
+        result[variant] = sealevel.where(reference_vol.isel({zdim: 0}).notnull())
 
     return result
 
