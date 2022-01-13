@@ -47,4 +47,4 @@ jobs:
           conda list
       - name: Test with pytest
         run: |
-          pytest -v momlevel
+          pytest
