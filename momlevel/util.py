@@ -62,7 +62,7 @@ def validate_areacello(areacello, reference=3.6111092e14, tolerance=0.02):
     return result
 
 
-def validate_dataset(dset, reference=False, strict=False):
+def validate_dataset(dset, reference=False, strict=True):
     """Function to validate requirements of the datasets
 
     This function determines if a supplied dataset is either a valid
@@ -79,7 +79,7 @@ def validate_dataset(dset, reference=False, strict=False):
         Flag denoting if `dset` is a reference dataset, by default False
     strict : bool
         If true, errors are handled as fatal Exceptions. If false,
-        warnings are issued, by default False
+        warnings are issued, by default True
 
     Returns
     -------

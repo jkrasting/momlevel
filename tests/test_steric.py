@@ -1,3 +1,4 @@
+import pytest
 import xarray as xr
 import numpy as np
 from momlevel import steric, thermosteric, halosteric
@@ -43,6 +44,11 @@ def test_steric_broadcast():
     )
     assert np.allclose(reference, rho)
 
+def test_steric_incorrect_area():
+    dset2 = dset.copy()
+    dset2["areacello"] = dset2["areacello"]*1.3
+    with pytest.raises(Exception):
+       _ = steric(dset2)
 
 reference_results = {
     "reference_thetao": 1892.9343653921171,

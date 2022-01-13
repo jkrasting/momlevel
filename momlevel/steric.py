@@ -22,7 +22,7 @@ def steric(
     equation_of_state="wright",
     variant="steric",
     domain="local",
-    strict=False,
+    strict=True,
 ):
     """Function to calculate steric sea level change
 
