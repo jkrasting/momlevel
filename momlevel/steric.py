@@ -132,31 +132,24 @@ def steric(
 
     # return an Xarray Dataset with the results
     result = xr.Dataset()
-    result["reference_thetao"] = reference.thetao
-    result["reference_so"] = reference.so
-    result["reference_vol"] = reference.volcello
-    result["reference_rho"] = reference.rho
-    result["reference_rho"] = reference.rho.where(reference.volcello.notnull())
     result["reference_height"] = reference_height.where(reference.volcello.notnull())
     result["expansion_coeff"] = expansion_coeff.where(reference.volcello.notnull())
 
     if domain == "global":
-        result["global_reference_vol"] = reference.volo
-        result["global_reference_rho"] = reference.rhoga
         result[variant] = sealevel
     else:
         result[variant] = sealevel.where(reference.volcello.isel({zcoord: 0}).notnull())
 
-    return result
+    return (result, reference)
 
 
 def halosteric(*args, **kwargs):
     """ Wrapper for halosteric calculation """
-    result = steric(*args, **kwargs, variant="halosteric")
-    return result
+    result, reference = steric(*args, **kwargs, variant="halosteric")
+    return (result, reference)
 
 
 def thermosteric(*args, **kwargs):
     """ Wrapper for thermosteric calculation """
-    result = steric(*args, **kwargs, variant="thermosteric")
-    return result
+    result, reference = steric(*args, **kwargs, variant="thermosteric")
+    return (result, reference)

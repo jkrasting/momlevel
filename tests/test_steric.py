@@ -1,42 +1,16 @@
 import pytest
-import xarray as xr
 import numpy as np
+
 from momlevel import steric, thermosteric, halosteric
 from momlevel.eos import wright
+from momlevel.test_data import generate_test_data
 
-np.random.seed(123)
-time = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims=("time"))
-z_l = xr.DataArray(np.array([2.5, 50.0, 100.0, 1000.0, 5000.0]), dims=("z_l"))
-xh = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims="xh")
-yh = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims="yh")
-
-thetao = xr.DataArray(
-    np.random.normal(15.0, 5.0, (5, 5, 5, 5)),
-    dims=({"time": time, "z_l": z_l, "yh": yh, "xh": xh}),
-)
-so = xr.DataArray(
-    np.random.normal(35.0, 1.5, (5, 5, 5, 5)),
-    dims=({"time": time, "z_l": z_l, "yh": yh, "xh": xh}),
-)
-volcello = xr.DataArray(
-    np.random.normal(1000.0, 100.0, (5, 5, 5, 5)),
-    dims=({"time": time, "z_l": z_l, "yh": yh, "xh": xh}),
-)
-areacello = xr.DataArray(
-    np.random.normal(100.0, 10.0, (5, 5)), dims=({"yh": yh, "xh": xh})
-)
-areacello = areacello / areacello.sum()
-areacello = areacello * 3.6111092e14
-
-dset = xr.Dataset(
-    {"thetao": thetao, "so": so, "volcello": volcello, "areacello": areacello}
-)
-dset = dset.assign_coords({"time": time, "z_l": z_l, "yh": yh, "xh": xh})
+dset = generate_test_data()
 
 
 def test_steric_broadcast():
-    result = steric(dset)
-    reference = float(result["reference_rho"][1, 2, 3])
+    result, reference = steric(dset)
+    reference = float(reference["rho"][1, 2, 3])
     rho = wright(
         float(dset["thetao"][0, 1, 2, 3]),
         float(dset["so"][0, 1, 2, 3]),
@@ -44,11 +18,13 @@ def test_steric_broadcast():
     )
     assert np.allclose(reference, rho)
 
+
 def test_steric_incorrect_area():
     dset2 = dset.copy()
-    dset2["areacello"] = dset2["areacello"]*1.3
+    dset2["areacello"] = dset2["areacello"] * 1.3
     with pytest.raises(Exception):
-       _ = steric(dset2)
+        _ = steric(dset2)
+
 
 reference_results = {
     "reference_thetao": 1892.9343653921171,
@@ -63,13 +39,13 @@ reference_results = {
 
 
 def test_halosteric_values():
-    result = halosteric(dset).sum()
-    assert np.allclose(
-        result["reference_thetao"], reference_results["reference_thetao"]
-    )
-    assert np.allclose(result["reference_so"], reference_results["reference_so"])
-    assert np.allclose(result["reference_vol"], reference_results["reference_vol"])
-    assert np.allclose(result["reference_rho"], reference_results["reference_rho"])
+    result, reference = halosteric(dset)
+    result = result.sum()
+    reference = reference.sum()
+    assert np.allclose(reference["thetao"], reference_results["reference_thetao"])
+    assert np.allclose(reference["so"], reference_results["reference_so"])
+    assert np.allclose(reference["volcello"], reference_results["reference_vol"])
+    assert np.allclose(reference["rho"], reference_results["reference_rho"])
     assert np.allclose(
         result["reference_height"], reference_results["reference_height"]
     )
@@ -78,13 +54,13 @@ def test_halosteric_values():
 
 
 def test_steric_values():
-    result = steric(dset).sum()
-    assert np.allclose(
-        result["reference_thetao"], reference_results["reference_thetao"]
-    )
-    assert np.allclose(result["reference_so"], reference_results["reference_so"])
-    assert np.allclose(result["reference_vol"], reference_results["reference_vol"])
-    assert np.allclose(result["reference_rho"], reference_results["reference_rho"])
+    result, reference = steric(dset)
+    result = result.sum()
+    reference = reference.sum()
+    assert np.allclose(reference["thetao"], reference_results["reference_thetao"])
+    assert np.allclose(reference["so"], reference_results["reference_so"])
+    assert np.allclose(reference["volcello"], reference_results["reference_vol"])
+    assert np.allclose(reference["rho"], reference_results["reference_rho"])
     assert np.allclose(
         result["reference_height"], reference_results["reference_height"]
     )
@@ -93,13 +69,13 @@ def test_steric_values():
 
 
 def test_thermosteric_values():
-    result = thermosteric(dset).sum()
-    assert np.allclose(
-        result["reference_thetao"], reference_results["reference_thetao"]
-    )
-    assert np.allclose(result["reference_so"], reference_results["reference_so"])
-    assert np.allclose(result["reference_vol"], reference_results["reference_vol"])
-    assert np.allclose(result["reference_rho"], reference_results["reference_rho"])
+    result, reference = thermosteric(dset)
+    result = result.sum()
+    reference = reference.sum()
+    assert np.allclose(reference["thetao"], reference_results["reference_thetao"])
+    assert np.allclose(reference["so"], reference_results["reference_so"])
+    assert np.allclose(reference["volcello"], reference_results["reference_vol"])
+    assert np.allclose(reference["rho"], reference_results["reference_rho"])
     assert np.allclose(
         result["reference_height"], reference_results["reference_height"]
     )
@@ -108,63 +84,51 @@ def test_thermosteric_values():
 
 
 def test_halosteric_global_values():
-    result = halosteric(dset, domain="global").sum()
-    assert np.allclose(
-        result["reference_thetao"], reference_results["reference_thetao"]
-    )
-    assert np.allclose(result["reference_so"], reference_results["reference_so"])
-    assert np.allclose(result["reference_vol"], reference_results["reference_vol"])
-    assert np.allclose(result["reference_rho"], reference_results["reference_rho"])
+    result, reference = halosteric(dset, domain="global")
+    result = result.sum()
+    reference = reference.sum()
+    assert np.allclose(reference["thetao"], reference_results["reference_thetao"])
+    assert np.allclose(reference["so"], reference_results["reference_so"])
+    assert np.allclose(reference["volcello"], reference_results["reference_vol"])
+    assert np.allclose(reference["rho"], reference_results["reference_rho"])
     assert np.allclose(
         result["reference_height"], reference_results["global_reference_height"]
     )
-    assert np.allclose(
-        result["global_reference_vol"], reference_results["global_reference_vol"]
-    )
-    assert np.allclose(
-        result["global_reference_rho"], reference_results["global_reference_rho"]
-    )
+    assert np.allclose(reference["volo"], reference_results["global_reference_vol"])
+    assert np.allclose(reference["rhoga"], reference_results["global_reference_rho"])
     assert np.allclose(result["expansion_coeff"], 0.07137665705082741)
     assert np.allclose(result["halosteric"], 1.98293992e-13)
 
 
 def test_steric_global_values():
-    result = steric(dset, domain="global").sum()
-    assert np.allclose(
-        result["reference_thetao"], reference_results["reference_thetao"]
-    )
-    assert np.allclose(result["reference_so"], reference_results["reference_so"])
-    assert np.allclose(result["reference_vol"], reference_results["reference_vol"])
-    assert np.allclose(result["reference_rho"], reference_results["reference_rho"])
+    result, reference = steric(dset, domain="global")
+    result = result.sum()
+    reference = reference.sum()
+    assert np.allclose(reference["thetao"], reference_results["reference_thetao"])
+    assert np.allclose(reference["so"], reference_results["reference_so"])
+    assert np.allclose(reference["volcello"], reference_results["reference_vol"])
+    assert np.allclose(reference["rho"], reference_results["reference_rho"])
     assert np.allclose(
         result["reference_height"], reference_results["global_reference_height"]
     )
-    assert np.allclose(
-        result["global_reference_vol"], reference_results["global_reference_vol"]
-    )
-    assert np.allclose(
-        result["global_reference_rho"], reference_results["global_reference_rho"]
-    )
+    assert np.allclose(reference["volo"], reference_results["global_reference_vol"])
+    assert np.allclose(reference["rhoga"], reference_results["global_reference_rho"])
     assert np.allclose(result["expansion_coeff"], 0.022642849677982482)
     assert np.allclose(result["steric"], 6.29048941e-14)
 
 
 def test_thermosteric_global_values():
-    result = thermosteric(dset, domain="global").sum()
-    assert np.allclose(
-        result["reference_thetao"], reference_results["reference_thetao"]
-    )
-    assert np.allclose(result["reference_so"], reference_results["reference_so"])
-    assert np.allclose(result["reference_vol"], reference_results["reference_vol"])
-    assert np.allclose(result["reference_rho"], reference_results["reference_rho"])
+    result, reference = thermosteric(dset, domain="global")
+    result = result.sum()
+    reference = reference.sum()
+    assert np.allclose(reference["thetao"], reference_results["reference_thetao"])
+    assert np.allclose(reference["so"], reference_results["reference_so"])
+    assert np.allclose(reference["volcello"], reference_results["reference_vol"])
+    assert np.allclose(reference["rho"], reference_results["reference_rho"])
     assert np.allclose(
         result["reference_height"], reference_results["global_reference_height"]
     )
-    assert np.allclose(
-        result["global_reference_vol"], reference_results["global_reference_vol"]
-    )
-    assert np.allclose(
-        result["global_reference_rho"], reference_results["global_reference_rho"]
-    )
+    assert np.allclose(reference["volo"], reference_results["global_reference_vol"])
+    assert np.allclose(reference["rhoga"], reference_results["global_reference_rho"])
     assert np.allclose(result["expansion_coeff"], -0.049692744362344)
     assert np.allclose(result["thermosteric"], -1.38053154e-13)

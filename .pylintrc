@@ -226,6 +226,8 @@ good-names=i,
            I_denom,
            so,
            e,
+           xh,
+           yh,
            _
 
 # Good variable names regexes, separated by a comma. If names match any regex,
