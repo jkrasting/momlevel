@@ -1,5 +1,5 @@
 import numpy as np
-from .wright import wright
+from momlevel.eos import wright
 
 
 def test_wright_scalar():

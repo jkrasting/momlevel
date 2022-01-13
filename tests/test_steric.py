@@ -1,7 +1,7 @@
 import xarray as xr
 import numpy as np
-from .steric import steric, thermosteric, halosteric
-from .eos.wright import wright
+from momlevel import steric, thermosteric, halosteric
+from momlevel.eos import wright
 
 np.random.seed(123)
 time = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims=("time"))
