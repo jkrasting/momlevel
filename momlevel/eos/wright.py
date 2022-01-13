@@ -1,5 +1,4 @@
-import numpy as np
-
+""" Wright Equation of State """
 
 def wright(T, S, p):
     """Calculate in-situ density based on the Wright equation of state.

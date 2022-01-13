@@ -151,10 +151,12 @@ def steric(
 
 
 def halosteric(*args, **kwargs):
+    """ Wrapper for halosteric calculation """
     result = steric(*args, **kwargs, variant="halosteric")
     return result
 
 
 def thermosteric(*args, **kwargs):
+    """ Wrapper for thermosteric calculation """
     result = steric(*args, **kwargs, variant="thermosteric")
     return result

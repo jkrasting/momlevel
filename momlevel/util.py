@@ -58,7 +58,7 @@ def validate_areacello(areacello, reference=3.6111092e14, tolerance=0.02):
         True if areacello is within tolerance
     """
     error = (areacello.sum() - reference) / reference
-    result = True if np.abs(error) < tolerance else False
+    result = bool(np.abs(error) < tolerance)
     return result
 
 
