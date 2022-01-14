@@ -160,7 +160,7 @@ def validate_dataset(dset, reference=False, strict=True):
                 except AssertionError as e:
                     exceptions.append(e)
 
-        if len(exceptions) > 0:
-            for e in exceptions:
-                print(e)
-            raise ValueError("Errors found in dataset.")
+    if len(exceptions) > 0:
+        for e in exceptions:
+            print(e)
+        raise ValueError("Errors found in dataset.")
