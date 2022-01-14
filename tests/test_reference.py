@@ -1,4 +1,3 @@
-from momlevel import eos
 from momlevel import reference
 from momlevel.test_data import generate_test_data
 
@@ -6,7 +5,7 @@ dset = generate_test_data()
 
 
 def test_setup_reference_state():
-    result = reference.setup_reference_state(dset, eos.wright)
+    result = reference.setup_reference_state(dset, "Wright")
     expected_vars = [
         "thetao",
         "so",

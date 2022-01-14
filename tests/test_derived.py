@@ -2,14 +2,13 @@ import pytest
 import numpy as np
 
 from momlevel import derived
-from momlevel.eos import wright
 from momlevel.test_data import generate_test_data
 
 dset = generate_test_data()
 
 
 def test_calc_rho():
-    rho = derived.calc_rho(wright, dset.thetao, dset.so, dset.z_l * 1.0e4)
+    rho = derived.calc_rho(dset.thetao, dset.so, dset.z_l * 1.0e4, eos="Wright")
     pytest.rho = rho
     assert np.allclose(rho.sum(), 644369.50302943)
 

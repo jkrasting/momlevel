@@ -1,7 +1,5 @@
 import pytest
-import numpy as np
 
-from momlevel import eos
 from momlevel import reference
 from momlevel import util
 from momlevel.test_data import generate_test_data
@@ -71,13 +69,13 @@ def test_validate_dataset_5():
 
 def test_validate_dataset_6():
     """tests that reference dataset is valid"""
-    ref_dset = reference.setup_reference_state(dset, eos.wright)
+    ref_dset = reference.setup_reference_state(dset, eos="Wright")
     util.validate_dataset(ref_dset, reference=True)
 
 
 def test_validate_dataset_7():
     """tests that missing reference dataset field raises an exception"""
-    ref_dset = reference.setup_reference_state(dset, eos.wright)
+    ref_dset = reference.setup_reference_state(dset, eos="Wright")
     ref_dset = ref_dset.drop_vars(["rhoga"])
     with pytest.raises(Exception):
         util.validate_dataset(ref_dset, reference=True)

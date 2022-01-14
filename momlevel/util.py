@@ -1,8 +1,8 @@
 """ util.py - generic utilities for momlevel """
 
 import warnings
-
 import numpy as np
+from momlevel import eos
 
 
 __all__ = ["default_coords", "validate_areacello", "validate_dataset"]
@@ -32,6 +32,31 @@ def default_coords(coord_names=None):
     zcoord = coord_names["z"] if "z" in coord_names.keys() else "z_l"
     tcoord = coord_names["t"] if "t" in coord_names.keys() else "time"
     return (tcoord, zcoord)
+
+
+def eos_func_from_str(eos_str):
+    """Function to resolve equation of state function
+
+    This function takes the name of an equation of state in string
+    format and returns the corresponding function object.
+
+    Parameters
+    ----------
+    eos_str : str
+        Equation of state
+
+    Returns
+    -------
+    function
+    """
+
+    assert isinstance(eos_str, str), "Expecting string for equation of state"
+    eos_str = eos_str.lower()
+    avail_eos = list(eos.__dict__.keys())
+    if eos_str not in avail_eos:
+        raise ValueError(f"Unknown equation of state: {eos_str}")
+
+    return eos.__dict__[eos_str]
 
 
 def validate_areacello(areacello, reference=3.6111092e14, tolerance=0.02):

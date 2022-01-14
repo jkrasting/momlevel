@@ -12,7 +12,7 @@ from momlevel.util import default_coords
 __all__ = ["setup_reference_state"]
 
 
-def setup_reference_state(dset, eos, coord_names=None, time_index=0):
+def setup_reference_state(dset, eos="Wright", coord_names=None, time_index=0):
     """Function to generate reference dataset
 
     This function generates a dataset of initial reference values for
@@ -26,8 +26,8 @@ def setup_reference_state(dset, eos, coord_names=None, time_index=0):
     ----------
     dset : xarray.core.dataset.Dataset
         Dataset containing thetao, so, volcello, and areacello
-    eos : function
-        Equation of state function from momlevel.eos
+    eos : str, optional
+        Equation of state, by default "Wright"
     coord_names : :obj:`dict`, optional
         Dictionary of coordinate name mappings. This should use x, y, z, and t
         as keys, e.g. {"x":"xh", "y":"yh", "z":"z_l", "t":"time"}
@@ -61,7 +61,7 @@ def setup_reference_state(dset, eos, coord_names=None, time_index=0):
     )
 
     # calculate in situ reference density
-    reference["rho"] = calc_rho(eos, reference.thetao, reference.so, pres)
+    reference["rho"] = calc_rho(reference.thetao, reference.so, pres, eos=eos)
 
     # calculate global ocean volume
     reference["volo"] = calc_volo(reference.volcello)

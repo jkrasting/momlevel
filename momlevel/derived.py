@@ -1,6 +1,8 @@
 """ derived.py - module for calculating derived fields """
 
 import xarray as xr
+from momlevel import util
+
 
 __all__ = ["calc_masso", "calc_rho", "calc_rhoga", "calc_volo"]
 
@@ -38,42 +40,45 @@ def calc_masso(rho, volcello, tcoord="time"):
     return masso
 
 
-def calc_rho(eos, thetao, so, pres):
+def calc_rho(thetao, so, pres, eos="Wright"):
     """Function to calculate in situ density
 
     This function calculates in situ density from potential temperature,
-    salinity, and pressure. The equation of state is specified as a function
-    from the momlevel.eos module, e.g. `momlevel.eos.wright`.
+    salinity, and pressure. The equation of state can be specified with
+    and available one from the momlevel.eos module.
 
     Parameters
     ----------
-    eos : function
-        Equation of state from the momlevel.eos module
     thetao : xarray.core.dataarray.DataArray
         Sea water potential temperature in units = degC
     so : xarray.core.dataarray.DataArray
         Sea water salinity in units = 0.001
     pres : xarray.core.dataarray.DataArray
         Pressure, in units of Pa
+    eos : str
+        Equation of state, by default "Wright"
 
     Returns
     -------
     xarray.core.dataarray.DataArray
         In situ sea water density
     """
+
+    # obtain the function object corresponding to the eos
+    eos_func = util.eos_func_from_str(eos)
+
     rho = xr.apply_ufunc(
-        eos,
+        eos_func,
         thetao,
         so,
         pres,
         dask="allowed",
     )
 
-    eos_name = str(eos).split(" ")[1].capitalize()
     rho.attrs = {
         "standard_name": "sea_water_density",
         "long_name": "In situ sea water density",
-        "comment": f"calculated with the {eos_name} equation of state",
+        "comment": f"calculated with the {eos} equation of state",
         "units": "kg m-3",
     }
 

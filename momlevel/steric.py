@@ -2,11 +2,9 @@
 
 import numpy as np
 import xarray as xr
-import momlevel.eos as eos
 
 from momlevel.derived import calc_masso
 from momlevel.derived import calc_rho
-
 from momlevel.reference import setup_reference_state
 from momlevel.util import default_coords
 from momlevel.util import validate_dataset
@@ -19,7 +17,7 @@ def steric(
     reference=None,
     coord_names=None,
     varname_map=None,
-    equation_of_state="wright",
+    equation_of_state="Wright",
     variant="steric",
     domain="local",
     strict=True,
@@ -49,7 +47,7 @@ def steric(
         Dictionary of variable mappings. Variables are renamed according to these
         mappings at the start of the routine, by default None.
     equation_of_state : str, optional
-        Equation of state to use in calculations, by default "wright"
+        Equation of state to use in calculations, by default "Wright"
     variant : str, optional
         Options are "steric", "thermosteric", and "halosteric", by default "steric"
     domain : str, optional
@@ -72,9 +70,6 @@ def steric(
 
     # default coordinate names
     tcoord, zcoord = default_coords(coord_names)
-
-    # determine the equation of state to use
-    equation_of_state = eos.__dict__[equation_of_state]
 
     # approximate pressure from depth coordinate
     pres = dset[zcoord] * 1.0e4
@@ -103,7 +98,7 @@ def steric(
         so = dset["so"]
 
     # calculate in situ density
-    rho = calc_rho(equation_of_state, thetao, so, pres)
+    rho = calc_rho(thetao, so, pres, eos=equation_of_state)
 
     # calculate the expansion coefficient for each grid cell
     if domain == "global":
@@ -144,12 +139,12 @@ def steric(
 
 
 def halosteric(*args, **kwargs):
-    """ Wrapper for halosteric calculation """
+    """Wrapper for halosteric calculation"""
     result, reference = steric(*args, **kwargs, variant="halosteric")
     return (result, reference)
 
 
 def thermosteric(*args, **kwargs):
-    """ Wrapper for thermosteric calculation """
+    """Wrapper for thermosteric calculation"""
     result, reference = steric(*args, **kwargs, variant="thermosteric")
     return (result, reference)
