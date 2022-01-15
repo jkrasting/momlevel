@@ -107,6 +107,9 @@ def steric(
     else:
         expansion_coeff = np.log(reference["rho"] / rho)
         expansion_coeff = expansion_coeff.transpose(*(tcoord, ...))
+        expansion_coeff = xr.where(
+            reference["volcello"].notnull(), expansion_coeff, np.nan
+        )
         expansion_coeff.attrs = {"long_name": "Expansion coefficient"}
 
     # calculate reference height and steric sea level change
@@ -115,6 +118,9 @@ def steric(
         sealevel = reference_height * expansion_coeff
     else:
         reference_height = reference["volcello"] / reference["areacello"]
+        reference_height = xr.where(
+            reference["volcello"].notnull(), reference_height, np.nan
+        )
         sealevel = (reference_height * expansion_coeff).sum(dim=zcoord)
     reference_height.attrs = {"long_name": "Reference column height", "units": "m"}
 
@@ -127,13 +133,14 @@ def steric(
 
     # return an Xarray Dataset with the results
     result = xr.Dataset()
-    result["reference_height"] = reference_height.where(reference.volcello.notnull())
-    result["expansion_coeff"] = expansion_coeff.where(reference.volcello.notnull())
 
     if domain == "global":
         result[variant] = sealevel
+        result["reference_height"] = reference_height
     else:
         result[variant] = sealevel.where(reference.volcello.isel({zcoord: 0}).notnull())
+        result["reference_height"] = reference_height
+        result["expansion_coeff"] = expansion_coeff
 
     return (result, reference)
 

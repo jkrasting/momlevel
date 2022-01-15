@@ -32,7 +32,7 @@ reference_results = {
     "reference_vol": 125401.8625239444,
     "reference_rho": 128880.60377451136,
     "reference_height": 8.74107451e-09,
-    "global_reference_height": 4.340836e-08,
+    "global_reference_height": 3.4726688e-10,
     "global_reference_vol": 125401.8625239444,
     "global_reference_rho": 1030.9696145532507,
 }
@@ -96,7 +96,6 @@ def test_halosteric_global_values():
     )
     assert np.allclose(reference["volo"], reference_results["global_reference_vol"])
     assert np.allclose(reference["rhoga"], reference_results["global_reference_rho"])
-    assert np.allclose(result["expansion_coeff"], 0.07137665705082741)
     assert np.allclose(result["halosteric"], 1.98293992e-13)
 
 
@@ -113,7 +112,6 @@ def test_steric_global_values():
     )
     assert np.allclose(reference["volo"], reference_results["global_reference_vol"])
     assert np.allclose(reference["rhoga"], reference_results["global_reference_rho"])
-    assert np.allclose(result["expansion_coeff"], 0.022642849677982482)
     assert np.allclose(result["steric"], 6.29048941e-14)
 
 
@@ -130,5 +128,4 @@ def test_thermosteric_global_values():
     )
     assert np.allclose(reference["volo"], reference_results["global_reference_vol"])
     assert np.allclose(reference["rhoga"], reference_results["global_reference_rho"])
-    assert np.allclose(result["expansion_coeff"], -0.049692744362344)
     assert np.allclose(result["thermosteric"], -1.38053154e-13)
