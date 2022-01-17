@@ -15,6 +15,11 @@ def test_calc_dz_1():
 
 
 def test_calc_dz_2():
+    dz = derived.calc_dz(dset2.z_l, dset2.z_i, dset2.deptho, fraction=True)
+    assert np.allclose(dz.sum(), 91.82404981)
+
+
+def test_calc_dz_3():
     deptho = dset2.deptho.copy()
     deptho[4, 4] = -200.0
     with pytest.raises(Exception):

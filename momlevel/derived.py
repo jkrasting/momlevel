@@ -8,7 +8,7 @@ from momlevel import util
 __all__ = ["calc_dz", "calc_masso", "calc_rho", "calc_rhoga", "calc_volo"]
 
 
-def calc_dz(levels, interfaces, depth):
+def calc_dz(levels, interfaces, depth, fraction=False):
     """Function to calculate dz that accounts for partial bottom cells
 
     This function uses the 2-dimensional bathymetry and the vertical
@@ -23,6 +23,9 @@ def calc_dz(levels, interfaces, depth):
         Vertical coordinate cell interfaces (1-dimensional)
     depth : xarray.core.dataarray.DataArray
         Bathymetry field in same units as coordinate (2-dimensional)
+    fraction : bool
+        If True, return fraction of cell. If False, return raw dz,
+        by default False
 
     Returns
     -------
@@ -58,7 +61,14 @@ def calc_dz(levels, interfaces, depth):
     part = depth - ztop
     part = xr.where(part < 0.0, 0.0, part)
 
-    return np.minimum(part, dz_field)
+    result = np.minimum(part, dz_field)
+
+    if fraction:
+        _dz_field = xr.where(dz_field == 0, np.nan, dz_field)
+        _dz_part = xr.where(result == 0, np.nan, result)
+        result = _dz_part / _dz_field
+
+    return result
 
 
 def calc_masso(rho, volcello, tcoord="time"):
