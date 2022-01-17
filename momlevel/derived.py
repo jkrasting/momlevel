@@ -1,10 +1,64 @@
 """ derived.py - module for calculating derived fields """
 
+import numpy as np
 import xarray as xr
 from momlevel import util
 
 
-__all__ = ["calc_masso", "calc_rho", "calc_rhoga", "calc_volo"]
+__all__ = ["calc_dz", "calc_masso", "calc_rho", "calc_rhoga", "calc_volo"]
+
+
+def calc_dz(levels, interfaces, depth):
+    """Function to calculate dz that accounts for partial bottom cells
+
+    This function uses the 2-dimensional bathymetry and the vertical
+    coordinate levels and interfaces to calculate a 3-dimensional
+    dz field that properly accounts for partial bottom cells.
+
+    Parameters
+    ----------
+    levels : xarray.core.dataarray.DataArray
+        Vertical coordinate cell centers (1-dimensional)
+    interfaces : xarray.core.dataarray.DataArray
+        Vertical coordinate cell interfaces (1-dimensional)
+    depth : xarray.core.dataarray.DataArray
+        Bathymetry field in same units as coordinate (2-dimensional)
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+        dz (3-dimensional)
+    """
+
+    # check that all values are positive
+    assert bool(
+        np.all(depth.fillna(0.0) >= 0)
+    ), "Depth values must all be positive-definite"
+    assert bool(
+        np.all(levels >= 0)
+    ), "Vertical coordinate levels must all be positive-definite"
+    assert bool(
+        np.all(interfaces >= 0)
+    ), "Vertical coordinate interfaces must all be positive-definite"
+
+    # fill missing values with zero
+    depth = depth.fillna(0.0)
+
+    # broadcast to common dimensions
+    ztop = xr.DataArray(interfaces[0:-1].values, coords=levels.coords)
+    _, ztop = xr.broadcast(depth, ztop)
+    zbot = xr.DataArray(interfaces[1::].values, coords=levels.coords)
+    _, zbot = xr.broadcast(depth, zbot)
+    depth = depth.broadcast_like(levels)
+
+    # get pure dz
+    dz_field = zbot - ztop
+
+    # calculate partial cell
+    part = depth - ztop
+    part = xr.where(part < 0.0, 0.0, part)
+
+    return np.minimum(part, dz_field)
 
 
 def calc_masso(rho, volcello, tcoord="time"):

@@ -44,3 +44,34 @@ def generate_test_data():
     dset = dset.assign_coords({"time": time, "z_l": z_l, "yh": yh, "xh": xh})
 
     return dset
+
+
+def generate_test_data_dz():
+    """Function to generate test dataset for partial bottom cells
+
+    Returns
+    -------
+    xarray.core.dataset.Dataset
+    """
+    xh = np.arange(1, 6)
+    xh = xr.DataArray(xh, dims=("xh"))
+
+    yh = np.arange(10, 60, 10)
+    yh = xr.DataArray(yh, dims=("yh"))
+
+    np.random.seed(123)
+
+    deptho = np.random.uniform(0.0, 100.0, (5, 5))
+    deptho[2, 2] = np.nan
+    deptho[2, 3] = np.nan
+    deptho = xr.DataArray(deptho, coords=(yh, xh))
+
+    z_i = np.array([0.0, 5.0, 10.0, 20.0, 50.0, 100.0])
+    z_i = xr.DataArray(z_i, dims=("z_i"))
+
+    z_l = np.array((z_i[1::] + z_i[0:-1]) / 2.0)
+    z_l = xr.DataArray(z_l, dims=("z_l"))
+
+    dset = xr.Dataset({"deptho": deptho, "z_l": z_l, "z_i": z_i})
+
+    return dset
