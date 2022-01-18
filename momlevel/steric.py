@@ -17,6 +17,7 @@ def steric(
     reference=None,
     coord_names=None,
     varname_map=None,
+    rhozero=1035.0,
     equation_of_state="Wright",
     variant="steric",
     domain="local",
@@ -46,6 +47,8 @@ def steric(
     varname_map : :obj:`dict`, optional
         Dictionary of variable mappings. Variables are renamed according to these
         mappings at the start of the routine, by default None.
+    rhozero : float, optional
+        Globally constant reference density in kg m-3, by default 1035.0
     equation_of_state : str, optional
         Equation of state to use in calculations, by default "Wright"
     variant : str, optional
