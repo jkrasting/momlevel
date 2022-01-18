@@ -41,7 +41,7 @@ def setup_reference_state(dset, eos="Wright", coord_names=None, time_index=0):
     """
 
     # default coordinate names
-    tcoord, zcoord = default_coords(coord_names)
+    tcoord, zcoord, zbounds = default_coords(coord_names)
 
     # approximate pressure from depth coordinate
     pres = dset[zcoord] * 1.0e4

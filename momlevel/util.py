@@ -19,7 +19,8 @@ def default_coords(coord_names=None):
     ----------
     coord_names : :obj:`dict`, optional
         Dictionary of coordinate name mappings. This should use x, y, z, and t
-        as keys, e.g. {"x":"xh", "y":"yh", "z":"z_l", "t":"time"}
+        as keys, e.g. {"x":"xh", "y":"yh", "z":"z_l", "t":"time"}. Coordinate
+        bounds are noted by appending "bounds" to each key, i.e. "zbounds"
 
     Returns
     -------
@@ -30,8 +31,9 @@ def default_coords(coord_names=None):
     coord_names = {} if coord_names is None else coord_names
     assert isinstance(coord_names, dict), "Coordinate mapping must be a dictionary."
     zcoord = coord_names["z"] if "z" in coord_names.keys() else "z_l"
+    zbounds = coord_names["zbounds"] if "zbounds" in coord_names.keys() else "z_i"
     tcoord = coord_names["t"] if "t" in coord_names.keys() else "time"
-    return (tcoord, zcoord)
+    return (tcoord, zcoord, zbounds)
 
 
 def eos_func_from_str(eos_str):

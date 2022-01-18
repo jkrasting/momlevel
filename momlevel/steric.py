@@ -69,7 +69,7 @@ def steric(
     validate_dataset(dset, strict=strict)
 
     # default coordinate names
-    tcoord, zcoord = default_coords(coord_names)
+    tcoord, zcoord, zbounds = default_coords(coord_names)
 
     # approximate pressure from depth coordinate
     pres = dset[zcoord] * 1.0e4
