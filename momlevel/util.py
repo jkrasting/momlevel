@@ -89,7 +89,7 @@ def validate_areacello(areacello, reference=3.6111092e14, tolerance=0.02):
     return result
 
 
-def validate_dataset(dset, reference=False, strict=True):
+def validate_dataset(dset, reference=False, strict=True, additional_vars=None):
     """Function to validate requirements of the datasets
 
     This function determines if a supplied dataset is either a valid
@@ -102,11 +102,13 @@ def validate_dataset(dset, reference=False, strict=True):
     ----------
     dset : xarray.core.dataset.Dataset
         Dataset supplied for validation
-    reference : bool
+    reference : bool, optional
         Flag denoting if `dset` is a reference dataset, by default False
-    strict : bool
+    strict : bool, optional
         If true, errors are handled as fatal Exceptions. If false,
         warnings are issued, by default True
+    additional_vars : :obj:`list`, optional
+        List of additional variables to check for in the dataset
 
     Returns
     -------
@@ -127,11 +129,23 @@ def validate_dataset(dset, reference=False, strict=True):
 
     # check for missing variables
     expected_varlist = ["thetao", "so", "volcello", "areacello"]
+
+    # add additional variables if supplied
+    if additional_vars is not None:
+        additional_vars = (
+            [additional_vars]
+            if not isinstance(additional_vars, list)
+            else additional_vars
+        )
+    else:
+        additional_vars = []
+    expected_varlist = expected_varlist + additional_vars
+
+    reference_varlist = ["rho", "volo", "masso", "rhoga"]
     expected_varlist = (
-        expected_varlist + ["rho", "volo", "masso", "rhoga"]
-        if reference
-        else expected_varlist
+        expected_varlist + reference_varlist if reference else expected_varlist
     )
+
     missing = list(set(expected_varlist) - set(dset_varlist))
 
     try:
@@ -142,7 +156,7 @@ def validate_dataset(dset, reference=False, strict=True):
     # check for dimensionality of 3D vars
     ranks = (3, "(z,y,x)") if reference else (4, ("t,z,y,x"))
     for var in ["thetao", "so", "volcello"]:
-        if var not in missing:
+        if var in dset.variables:
             try:
                 assert (
                     len(dset[var].dims) == ranks[0]
@@ -150,16 +164,18 @@ def validate_dataset(dset, reference=False, strict=True):
             except AssertionError as e:
                 exceptions.append(e)
 
-    # check for dimensionality of cell area
-    if "areacello" not in missing:
-        try:
-            assert (
-                len(dset["areacello"].dims) == 2
-            ), "Variable areacello must have exactly 2 dimensions (y,x)"
-        except AssertionError as e:
-            exceptions.append(e)
+    # check for dimensionality of 2D vars
+    for var in ["areacello", "deptho"]:
+        if var in dset.variables:
+            try:
+                assert (
+                    len(dset[var].dims) == 2
+                ), f"Variable {var} must have exactly 2 dimensions (y,x)"
+            except AssertionError as e:
+                exceptions.append(e)
 
-        # validate ocean cell area and make sure it is sensible
+    # validate ocean cell area and make sure it is sensible
+    if "areacello" in dset.variables:
         try:
             assert validate_areacello(
                 dset["areacello"]
