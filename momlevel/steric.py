@@ -68,11 +68,12 @@ def steric(
     # remap variable names, if passed
     dset = dset.rename(varname_map)
 
-    # conduct some sanity checks on the input dataset
-    validate_dataset(dset, strict=strict)
-
     # default coordinate names
     tcoord, zcoord, zbounds = default_coords(coord_names)
+
+    # conduct some sanity checks on the input dataset
+    additional_vars = None if domain == "global" else [zbounds, "deptho"]
+    validate_dataset(dset, strict=strict, additional_vars=additional_vars)
 
     # approximate pressure from depth coordinate
     pres = dset[zcoord] * 1.0e4
