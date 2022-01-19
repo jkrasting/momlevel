@@ -85,9 +85,6 @@ def test_validate_dataset_7():
 def test_validate_dataset_8():
     """tests additional variables option"""
     test_dset = dset.copy()
-    additional_vars = ["deptho", "z_l", "z_i"]
+    additional_vars = ["foo", "bar"]
     with pytest.raises(Exception):
         util.validate_dataset(test_dset, additional_vars=additional_vars)
-    test_dset["deptho"] = test_dset["areacello"] * 2.0
-    test_dset["z_i"] = test_dset["z_l"] * 2.0
-    util.validate_dataset(test_dset, additional_vars=additional_vars)

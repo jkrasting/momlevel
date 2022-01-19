@@ -29,13 +29,13 @@ def test_calc_dz_3():
 def test_calc_rho():
     rho = derived.calc_rho(dset1.thetao, dset1.so, dset1.z_l * 1.0e4, eos="Wright")
     pytest.rho = rho
-    assert np.allclose(rho.sum(), 644369.50302943)
+    assert np.allclose(rho.sum(), 643847.01494266)
 
 
 def test_calc_masso():
     masso = derived.calc_masso(pytest.rho, dset1.volcello)
     pytest.masso = masso
-    assert np.allclose(masso.sum(), 6.43587532e08)
+    assert np.allclose(masso.sum(), 6.43066545e08)
 
 
 def test_calc_volo_1():
@@ -51,4 +51,4 @@ def test_calc_volo_1():
 
 def test_rhoga():
     rhoga = derived.calc_rhoga(pytest.masso, pytest.volo)
-    assert np.allclose(rhoga.sum(), 5132.20074272)
+    assert np.allclose(rhoga.sum(), 5128.04620652)
