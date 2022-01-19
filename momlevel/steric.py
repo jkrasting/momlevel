@@ -3,6 +3,7 @@
 import numpy as np
 import xarray as xr
 
+from momlevel.derived import calc_dz
 from momlevel.derived import calc_masso
 from momlevel.derived import calc_rho
 from momlevel.reference import setup_reference_state
@@ -104,47 +105,45 @@ def steric(
     # calculate in situ density
     rho = calc_rho(thetao, so, pres, eos=equation_of_state)
 
-    # calculate the expansion coefficient for each grid cell
-    if domain == "global":
-        masso = calc_masso(rho, reference["volcello"], tcoord=tcoord)
-        expansion_coeff = np.log(reference["rhoga"] / (masso / reference["volo"]))
-    else:
-        expansion_coeff = np.log(reference["rho"] / rho)
-        expansion_coeff = expansion_coeff.transpose(*(tcoord, ...))
-        expansion_coeff = xr.where(
-            reference["volcello"].notnull(), expansion_coeff, np.nan
-        )
-        expansion_coeff.attrs = {"long_name": "Expansion coefficient"}
-
-    # calculate reference height and steric sea level change
-    if domain == "global":
-        reference_height = reference["volo"] / reference["areacello"].sum()
-        sealevel = reference_height * expansion_coeff
-    else:
-        reference_height = reference["volcello"] / reference["areacello"]
-        reference_height = xr.where(
-            reference["volcello"].notnull(), reference_height, np.nan
-        )
-        sealevel = (reference_height * expansion_coeff).sum(dim=zcoord)
-    reference_height.attrs = {"long_name": "Reference column height", "units": "m"}
-
-    # calculate sealevel
-    sealevel = sealevel.transpose(*(tcoord, ...))
-    sealevel.attrs = {
-        "long_name": f"{variant.capitalize()} column height (eta)",
-        "units": "m",
-    }
-
     # return an Xarray Dataset with the results
     result = xr.Dataset()
 
+    # if global, calculate reference height and steric sea level adj. for Boussinesq models
     if domain == "global":
+        masso = calc_masso(rho, reference["volcello"], tcoord=tcoord)
+        expansion_coeff = np.log(reference["rhoga"] / (masso / reference["volo"]))
+        expansion_coeff.attrs = {"long_name": "Expansion coefficient"}
+        reference_height = reference["volo"] / reference["areacello"].sum()
+        reference_height.attrs = {"long_name": "Reference column height", "units": "m"}
+
+        # global steric level approximation for Boussinesq models
+        sealevel = reference_height * expansion_coeff
+
+        result["reference_height"] = reference_height
         result[variant] = sealevel
-        result["reference_height"] = reference_height
+
+    # otherwise calculate the change in density relative to the reference
     else:
+        delta_rho = xr.where(
+            reference["volcello"].notnull(), rho - reference["rho"], np.nan
+        )
+        delta_rho.attrs = {
+            "long_name": "change in in situ density from reference state",
+            "units": "kg m-3",
+        }
+        result["delta_rho"] = delta_rho
+
+        dz = calc_dz(dset[zcoord], dset[zbounds], dset["deptho"])
+        sealevel = (-1.0 / rhozero) * ((dz * delta_rho).sum(zcoord))
+
+        sealevel = sealevel.transpose(*(tcoord, ...))
         result[variant] = sealevel.where(reference.volcello.isel({zcoord: 0}).notnull())
-        result["reference_height"] = reference_height
-        result["expansion_coeff"] = expansion_coeff
+
+    # fix up variable metadata
+    result[variant].attrs = {
+        "long_name": f"{variant.capitalize()} height adjustment",
+        "units": "m",
+    }
 
     return (result, reference)
 
