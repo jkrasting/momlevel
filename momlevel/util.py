@@ -36,7 +36,7 @@ def default_coords(coord_names=None):
     return (tcoord, zcoord, zbounds)
 
 
-def eos_func_from_str(eos_str):
+def eos_func_from_str(eos_str, func_name="density"):
     """Function to resolve equation of state function
 
     This function takes the name of an equation of state in string
@@ -58,7 +58,7 @@ def eos_func_from_str(eos_str):
     if eos_str not in avail_eos:
         raise ValueError(f"Unknown equation of state: {eos_str}")
 
-    return eos.__dict__[eos_str].__dict__["density"]
+    return eos.__dict__[eos_str].__dict__[func_name]
 
 
 def validate_areacello(areacello, reference=3.6111092e14, tolerance=0.02):

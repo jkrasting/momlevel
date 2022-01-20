@@ -32,6 +32,16 @@ def test_calc_rho():
     assert np.allclose(rho.sum(), 643847.01494266)
 
 
+def test_calc_alpha():
+    alpha = derived.calc_alpha(dset1.thetao, dset1.so, dset1.z_l * 1.0e4, eos="Wright")
+    assert np.allclose(alpha.sum(), 0.14270076)
+
+
+def test_calc_beta():
+    beta = derived.calc_beta(dset1.thetao, dset1.so, dset1.z_l * 1.0e4, eos="Wright")
+    assert np.allclose(beta.sum(), 0.46398704)
+
+
 def test_calc_masso():
     masso = derived.calc_masso(pytest.rho, dset1.volcello)
     pytest.masso = masso

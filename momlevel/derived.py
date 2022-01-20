@@ -5,7 +5,95 @@ import xarray as xr
 from momlevel import util
 
 
-__all__ = ["calc_dz", "calc_masso", "calc_rho", "calc_rhoga", "calc_volo"]
+__all__ = ["calc_alpha", "calc_dz", "calc_masso", "calc_rho", "calc_rhoga", "calc_volo"]
+
+
+def calc_alpha(thetao, so, pres, eos="Wright"):
+    """Function to calculate the thermal expansion coefficient (alpha)
+
+    This function calculates the thermal expansion coefficient from
+    potential temperature, salinity, and pressure. The equation of state
+    can be specified with and available one from the momlevel.eos module.
+
+    Parameters
+    ----------
+    thetao : xarray.core.dataarray.DataArray
+        Sea water potential temperature in units = degC
+    so : xarray.core.dataarray.DataArray
+        Sea water salinity in units = 0.001
+    pres : xarray.core.dataarray.DataArray
+        Pressure, in units of Pa
+    eos : str
+        Equation of state, by default "Wright"
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+        Thermal expansion coefficient
+    """
+
+    # obtain the function object corresponding to the eos
+    eos_func = util.eos_func_from_str(eos, func_name="alpha")
+
+    alpha = xr.apply_ufunc(
+        eos_func,
+        thetao,
+        so,
+        pres,
+        dask="allowed",
+    )
+
+    alpha.attrs = {
+        "long_name": "Thermal expansion coefficient",
+        "comment": f"calculated with the {eos} equation of state",
+        "units": "degC-1",
+    }
+
+    return alpha
+
+
+def calc_beta(thetao, so, pres, eos="Wright"):
+    """Function to calculate the haline contraction coefficient (beta)
+
+    This function calculates the haline contraction coefficient from
+    potential temperature, salinity, and pressure. The equation of state
+    can be specified with and available one from the momlevel.eos module.
+
+    Parameters
+    ----------
+    thetao : xarray.core.dataarray.DataArray
+        Sea water potential temperature in units = degC
+    so : xarray.core.dataarray.DataArray
+        Sea water salinity in units = 0.001
+    pres : xarray.core.dataarray.DataArray
+        Pressure, in units of Pa
+    eos : str
+        Equation of state, by default "Wright"
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+        Thermal expansion coefficient
+    """
+
+    # obtain the function object corresponding to the eos
+    eos_func = util.eos_func_from_str(eos, func_name="beta")
+
+    beta = xr.apply_ufunc(
+        eos_func,
+        thetao,
+        so,
+        pres,
+        dask="allowed",
+    )
+
+    beta.attrs = {
+        "long_name": "Haline contraction coefficient",
+        "comment": f"calculated with the {eos} equation of state",
+        "units": "PSU-1",
+    }
+
+    return beta
 
 
 def calc_dz(levels, interfaces, depth, fraction=False):
