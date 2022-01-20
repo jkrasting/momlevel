@@ -58,7 +58,7 @@ def eos_func_from_str(eos_str):
     if eos_str not in avail_eos:
         raise ValueError(f"Unknown equation of state: {eos_str}")
 
-    return eos.__dict__[eos_str]
+    return eos.__dict__[eos_str].__dict__["density"]
 
 
 def validate_areacello(areacello, reference=3.6111092e14, tolerance=0.02):

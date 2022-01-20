@@ -1,4 +1,6 @@
-""" Wright Equation of State """
+""" wright.py -- Wright Equation of State """
+
+__all__ = ["density"]
 
 # constants
 A0 = 7.057924e-4
@@ -18,7 +20,7 @@ C4 = -2.302158e2
 C5 = -3.079464
 
 
-def wright(T, S, p):
+def density(T, S, p):
     """Calculate in-situ density based on the Wright equation of state.
 
     Reference:

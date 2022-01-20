@@ -1,17 +1,17 @@
 import numpy as np
-from momlevel.eos import wright
+from momlevel.eos.wright import density
 
 
-def test_wright_scalar():
-    assert np.allclose(wright(18.0, 35.0, 200000.0), 1025.359957453976)
+def test_wright_density_scalar():
+    assert np.allclose(density(18.0, 35.0, 200000.0), 1025.359957453976)
 
 
-def test_wright_3D():
+def test_wright_density_3D():
     np.random.seed(123)
     thetao = np.random.normal(15.0, 5.0, (5, 5))
     so = np.random.normal(35.0, 1.5, (5, 5))
     pressure = np.random.normal(2000.0, 500.0, (5, 5))
-    result = wright(thetao, so, pressure)
+    result = density(thetao, so, pressure)
 
     reference = np.array(
         [

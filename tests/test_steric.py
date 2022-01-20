@@ -11,7 +11,7 @@ dset = generate_test_data()
 def test_steric_broadcast():
     result, reference = steric(dset)
     reference = float(reference["rho"][1, 2, 3])
-    rho = wright(
+    rho = wright.density(
         float(dset["thetao"][0, 1, 2, 3]),
         float(dset["so"][0, 1, 2, 3]),
         float(dset["z_l"][1]) * 1.0e4,
