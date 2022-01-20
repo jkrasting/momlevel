@@ -1,5 +1,10 @@
 import numpy as np
-from momlevel.eos.wright import density
+from momlevel.eos.wright import density, drho_dtemp, drho_dsal, alpha, beta
+
+np.random.seed(123)
+thetao = np.random.normal(15.0, 5.0, (5, 5))
+so = np.random.normal(35.0, 1.5, (5, 5))
+pressure = np.random.normal(2000.0, 500.0, (5, 5))
 
 
 def test_wright_density_scalar():
@@ -7,10 +12,6 @@ def test_wright_density_scalar():
 
 
 def test_wright_density_3D():
-    np.random.seed(123)
-    thetao = np.random.normal(15.0, 5.0, (5, 5))
-    so = np.random.normal(35.0, 1.5, (5, 5))
-    pressure = np.random.normal(2000.0, 500.0, (5, 5))
     result = density(thetao, so, pressure)
 
     reference = np.array(
@@ -20,6 +21,116 @@ def test_wright_density_3D():
             [1026.46215987, 1026.07983447, 1024.87526491, 1025.60248704, 1026.76781679],
             [1025.49313182, 1021.07436173, 1022.61556652, 1025.4144156, 1025.92198395],
             [1025.08902445, 1026.81827678, 1027.38010227, 1025.6464104, 1029.7902152],
+        ]
+    )
+
+    assert np.allclose(result, reference)
+
+
+def test_wright_drho_dtemp():
+    assert np.allclose(drho_dtemp(18.0, 35.0, 200000.0), -0.24680005918175105)
+
+
+def test_wright_drho_dtemp_3D():
+    result = drho_dtemp(thetao, so, pressure)
+
+    reference = np.array(
+        [
+            [-0.16451469, -0.26534422, -0.22885635, -0.14374003, -0.18959691],
+            [-0.28945289, -0.07860242, -0.194249, -0.27301305, -0.18076641],
+            [-0.1867209, -0.21528447, -0.2849373, -0.18654684, -0.19955962],
+            [-0.19684501, -0.30830691, -0.30994268, -0.26490494, -0.23792567],
+            [-0.25235589, -0.28817751, -0.17566279, -0.2728243, -0.16534206],
+        ]
+    )
+
+    assert np.allclose(result, reference)
+
+
+def test_wright_drho_dsal():
+    assert np.allclose(drho_dsal(18.0, 35.0, 200000.0), 0.7652676800174607)
+
+
+def test_wright_drho_dsal_3D():
+    result = drho_dsal(thetao, so, pressure)
+
+    reference = np.array(
+        [
+            [0.78106187, 0.76283939, 0.76740405, 0.78599985, 0.77563402],
+            [0.75776023, 0.7982356, 0.77387977, 0.76009758, 0.77902625],
+            [0.77683052, 0.77126775, 0.75934832, 0.77624261, 0.77462232],
+            [0.77421365, 0.75338949, 0.7543978, 0.7626232, 0.76725626],
+            [0.76432022, 0.76033259, 0.77964101, 0.76162296, 0.78342761],
+        ]
+    )
+
+    assert np.allclose(result, reference)
+
+
+def test_wright_alpha():
+    assert np.allclose(alpha(18.0, 35.0, 200000.0), 0.0002406960183958898)
+
+
+def test_wright_alpha_3D():
+    result = alpha(thetao, so, pressure)
+
+    reference = np.array(
+        [
+            [
+                1.60302403e-04,
+                2.58669346e-04,
+                2.23490635e-04,
+                1.39935670e-04,
+                1.84870371e-04,
+            ],
+            [
+                2.82787127e-04,
+                7.67193535e-05,
+                1.89628468e-04,
+                2.66716353e-04,
+                1.75856489e-04,
+            ],
+            [
+                1.81907240e-04,
+                2.09812595e-04,
+                2.78021439e-04,
+                1.81890005e-04,
+                1.94357108e-04,
+            ],
+            [
+                1.91951567e-04,
+                3.01943641e-04,
+                3.03088172e-04,
+                2.58339399e-04,
+                2.31914001e-04,
+            ],
+            [
+                2.46179486e-04,
+                2.80650936e-04,
+                1.70981301e-04,
+                2.66002299e-04,
+                1.60558969e-04,
+            ],
+        ]
+    )
+
+    assert np.allclose(result, reference)
+
+
+def test_wright_beta():
+    assert np.allclose(beta(18.0, 35.0, 200000.0), 0.0007463405162784603)
+
+
+def test_wright_beta_3D():
+    result = beta(thetao, so, pressure)
+
+    reference = np.array(
+        [
+            [0.00076106, 0.00074365, 0.00074941, 0.0007652, 0.0007563],
+            [0.00074031, 0.00077911, 0.00075547, 0.00074257, 0.00075787],
+            [0.0007568, 0.00075166, 0.00074092, 0.00075686, 0.00075443],
+            [0.00075497, 0.00073784, 0.00073771, 0.00074372, 0.00074787],
+            [0.00074561, 0.00074047, 0.00075886, 0.00074258, 0.00076076],
         ]
     )
 
