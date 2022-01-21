@@ -2,20 +2,21 @@ import pytest
 
 from momlevel import reference
 from momlevel import util
-from momlevel.test_data import generate_test_data
+from momlevel.test_data import generate_test_data, generate_test_data_dz
 
 dset = generate_test_data()
+dset2 = generate_test_data_dz()
 
 
 def test_default_coords_1():
     result = util.default_coords()
-    assert result == ("time", "z_l")
+    assert result == ("time", "z_l", "z_i")
 
 
 def test_default_coords_2():
     coord_names = {"z": "lev", "t": "TIME"}
     result = util.default_coords(coord_names=coord_names)
-    assert result == ("TIME", "lev")
+    assert result == ("TIME", "lev", "z_i")
 
 
 def test_validate_areacello_1():
@@ -79,3 +80,11 @@ def test_validate_dataset_7():
     ref_dset = ref_dset.drop_vars(["rhoga"])
     with pytest.raises(Exception):
         util.validate_dataset(ref_dset, reference=True)
+
+
+def test_validate_dataset_8():
+    """tests additional variables option"""
+    test_dset = dset.copy()
+    additional_vars = ["foo", "bar"]
+    with pytest.raises(Exception):
+        util.validate_dataset(test_dset, additional_vars=additional_vars)
