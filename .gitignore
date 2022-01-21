@@ -136,3 +136,4 @@ dask-worker-space/
 
 # Sphinx
 docs/source/api/
+docs/source/savefig/

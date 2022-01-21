@@ -9,8 +9,50 @@ Background
 ----------
 The Wright Equation of State (1997) is the default EOS used in MOM6 for climate applications. The EOS provides a formulation for in-situ density based on potential temperature, salinity, and pressure. This implementation is computationally efficient and targeted for use in numerical models.
 
-The **momlevel** package is structured in modular way such that addition EOS implementations can be added to the `momlevel.eos <api/momlevel.eos.html>`_ module.  The low-level NumPy functions have a basic interface of (`T`, `S`, and `p`) and are optimized through the higher-level xarray functions in the package.
+The **momlevel** package is structured in modular way such that additional EOS implementations can be added to the `momlevel.eos <api/momlevel.eos.html>`_ module.  The low-level NumPy functions have a basic interface of (`T`, `S`, and `p`) and are optimized through the higher-level xarray functions in the package.
 
+
+Calculating In situ Density
+---------------------------
+The example below illustrates how to calculate the in situ density (kg m-3) using potential temperature and salinity averaged over years 1980-1999 from the NOAA-GFDL CM4 `historical` CMIP6 simulation. Note that pressure is approximated as depth multiplied by 1e4.
+
+.. ipython:: python
+
+   import xarray as xr
+   xr.set_options(display_style="html")
+
+   import momlevel
+   import matplotlib.pyplot as plt
+
+   import pkg_resources as pkgr
+   example_dataset = pkgr.resource_filename(
+       "momlevel",
+       "resources/CM4_historical.nc"
+   )
+
+   ds = xr.open_dataset(example_dataset)
+   ds
+
+Density is calculated using the xarray front end ``momlevel.derived.calc_rho``:
+
+.. ipython:: python
+
+   rho = momlevel.derived.calc_rho(ds.thetao,ds.so,ds.z_l*1e4)
+   rho.coords
+   rho.attrs
+
+Here is a map of the zonal mean density:
+
+.. ipython:: python
+
+   rho = rho.mean(dim="lon").assign_attrs(rho.attrs)
+
+   @savefig rhoinsitu.png width=6in
+   fig = rho.plot(
+       cmap="Spectral",
+       yincrease=False,
+       subplot_kws={"facecolor":"gray"}
+   )
 
 Thermal and Haline Expansion Coefficients
 -----------------------------------------
@@ -32,11 +74,11 @@ The coefficients are calculated by taking the derivative of density with respect
     \beta = \frac{1}{\rho} \: \frac{\partial \rho}{\partial S}
 
 
-Relationship to sea level
+Relationship to Sea Level
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 The coefficients can be interpreted as a "potential", i.e. how much a given change in temperature or salinity can contribute locally to steric sea level change.  In the absence of a transient scenario where heat or salt is added to the ocean, the rearrangement of existing water masses can contribute to non-zero density-driven sea level changes. This is one way in which changes in ocean circulation can impact sea level.
 
-The coefficients are related to thermosteric and halosteric sea level change:
+From `Griffies et al. (2014) <https://doi.org/10.1016/j.ocemod.2014.03.004>`_, the coefficients are related to thermosteric and halosteric sea level change:
 
 .. math::
    \left( \frac{\partial\eta}{\partial t}  \right)_{thermosteric} = \int_{-H}^{\eta} \alpha \left( \frac{\partial \theta}{\partial t} \right) dz
@@ -49,8 +91,77 @@ Where :math:`\eta` is the sea level and :math:`-H` is the sea floor
 .. note::
   These definitions of the local thermosteric and halosteric sea level change are different from the implementation used in the ``momlevel.steric`` module.
 
+Calculating the Coefficients
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. ipython:: python
+
+   alpha = momlevel.derived.calc_alpha(ds.thetao,ds.so,ds.z_l*1e4)
+
+   fig = plt.figure(figsize=(12,4))
+   ax1 = plt.subplot(1,2,1, facecolor="gray")
+   ax2 = plt.subplot(1,2,2, facecolor="gray")
+
+   alpha_surf = alpha.isel(z_l=0)
+   alpha_surf.plot.contourf(
+       cmap="Spectral_r",
+       vmin=0,
+       vmax=0.0004,
+       levels=20,
+       ax=ax1
+   )
+
+   alpha_xave = alpha.mean(dim="lon").assign_attrs(alpha.attrs)
+   alpha_xave.plot.contourf(
+       cmap="Spectral_r",
+       vmin=0,
+       vmax=0.0004,
+       levels=20,
+       yincrease=False,
+       ax=ax2
+   )
+
+   plt.subplots_adjust(wspace=0.4)
+
+   @savefig alpha.png width=10in
+   fig
+
+
+.. ipython:: python
+
+   beta = momlevel.derived.calc_beta(ds.thetao,ds.so,ds.z_l*1e4)
+
+   fig = plt.figure(figsize=(12,4))
+   ax1 = plt.subplot(1,2,1, facecolor="gray")
+   ax2 = plt.subplot(1,2,2, facecolor="gray")
+
+   beta_surf = beta.isel(z_l=0)
+   beta_surf.plot.contourf(
+       cmap="Spectral_r",
+       vmin=0.0007,
+       vmax=0.0008,
+       levels=20,
+       ax=ax1
+   )
+
+   beta_xave = beta.mean(dim="lon").assign_attrs(beta.attrs)
+   beta_xave.plot.contourf(
+       cmap="Spectral_r",
+       vmin=0.0007,
+       vmax=0.0008,
+       levels=20,
+       yincrease=False,
+       ax=ax2
+   )
+
+   plt.subplots_adjust(wspace=0.4)
+
+   @savefig beta.png width=10in
+   fig
+
 References
 ----------
-Wright, D.G., 1997. An equation of state for use in ocean models: Eckart’s formula revisited. Journal of Atmospheric and Oceanic Technology, 14(3), pp.735-740. `https://doi.org/10.1175/1520-0426(1997)014%3C0735:AEOSFU%3E2.0.CO;2 <https://doi.org/10.1175/1520-0426(1997)014%3C0735:AEOSFU%3E2.0.CO;2>`_
+* Griffies, S.M., et al., 2014: An assessment of global and regional sea level for years 1993–2007 in a suite of interannual CORE-II simulations. Ocean Modelling, 78, pp.35-89. `https://doi.org/10.1016/j.ocemod.2014.03.004 <https://doi.org/10.1016/j.ocemod.2014.03.004>`_
+* Wright, D.G., 1997: An equation of state for use in ocean models: Eckart’s formula revisited. Journal of Atmospheric and Oceanic Technology, 14(3), pp.735-740. `https://doi.org/10.1175/1520-0426(1997)014%3C0735:AEOSFU%3E2.0.CO;2 <https://doi.org/10.1175/1520-0426(1997)014%3C0735:AEOSFU%3E2.0.CO;2>`_
 
 
