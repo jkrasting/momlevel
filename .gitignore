@@ -133,3 +133,6 @@ dask-worker-space/
 
 #Pycharm
 .idea
+
+# Sphinx
+docs/source/api/

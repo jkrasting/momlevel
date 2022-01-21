@@ -5,27 +5,21 @@ momlevel -- Sea Level Related Routines for MOM
 **momlelvel** is an open-source Python package for calculating sea
 level-related fields with MOM6 output.
 
-Documentation
--------------
-
-.. **Getting Started**
-
-.. * :doc:`overview`
 .. * :doc:`install`
 .. * :doc:`virtualenv`
 .. * :doc:`testing`
 
 .. toctree::
-..   :maxdepth: 1
-..   :hidden:
-..   :caption: Getting Started
+   :maxdepth: 1
+   :hidden:
+   :caption: Background
 
-..   overview
+   eos
+
 ..   install
 ..   virtualenv
 ..   testing
 
-.. **User Guide**
 
 .. * :doc:`generate_diags`
 .. * :doc:`sqlite_format`
@@ -41,10 +35,6 @@ Documentation
 ..   vitals_data_frame
 ..   db2nc
 ..   plotting
-
-**Help & reference**
-
-* :doc:`api`
 
 .. toctree::
    :maxdepth: 1
