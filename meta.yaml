@@ -1,0 +1,40 @@
+{% set name = "momlevel" %}
+{% set version = "0.0.3" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: https://github.com/jkrasting/momlevel/archive/refs/tags/v{{ version }}.tar.gz
+
+build:
+  noarch: python
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - pip
+    - python
+  run:
+    - python
+    - numpy>=1.21.0
+    - xarray>=0.20.0
+
+about:
+  home: https://github.com/jkrasting/momlevel
+  license: Public Domain
+  license_file: LICENSE.txt
+  summary: "Tools to diagnose sea level in the MOM Ocean Model"
+  doc_url: https://momlevel.readthedocs.io/
+  dev_url: https://github.com/jkrasting/momlevel
+  description: |
+    momlevel is a Python package in the public domain
+    that provides documentation and routines for analyzing sea level and
+    related quantities in MOM6-class models. The package initially focuses
+    on global and local steric sea level change in Boussinesq configurations.
+
+extra:
+  recipe-maintainers:
+    - jkrasting
