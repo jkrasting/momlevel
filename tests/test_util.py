@@ -1,11 +1,19 @@
 import pytest
 
+import numpy as np
+
 from momlevel import reference
 from momlevel import util
-from momlevel.test_data import generate_test_data, generate_test_data_dz
+from momlevel.test_data import (
+    generate_test_data,
+    generate_test_data_dz,
+    generate_test_data_time,
+)
 
 dset = generate_test_data()
 dset2 = generate_test_data_dz()
+dset3 = generate_test_data_time()
+dset4 = generate_test_data_time(calendar="julian")
 
 
 def test_default_coords_1():
@@ -88,3 +96,17 @@ def test_validate_dataset_8():
     additional_vars = ["foo", "bar"]
     with pytest.raises(Exception):
         util.validate_dataset(test_dset, additional_vars=additional_vars)
+
+
+def test_annual_average_1():
+    """tests annual average of a noleap calendar dataset"""
+    result = util.annual_average(dset3).sum()
+    assert np.allclose(result["var_a"], 12484.37032342)
+    assert np.allclose(result["var_b"], 12541.00555234)
+
+
+def test_annual_average_2():
+    """tests annual average of a julian calendar dataset"""
+    result = util.annual_average(dset4).sum()
+    assert np.allclose(result["var_a"], 12484.17097863)
+    assert np.allclose(result["var_b"], 12541.22911069)

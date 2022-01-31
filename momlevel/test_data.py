@@ -3,7 +3,7 @@
 import xarray as xr
 import numpy as np
 
-__all__ = ["generate_test_data"]
+__all__ = ["generate_test_data", "generate_test_data_dz", "generate_test_data_time"]
 
 
 def generate_test_data():
@@ -96,3 +96,70 @@ def generate_test_data_dz():
     dset = xr.Dataset({"deptho": deptho, "z_l": z_l, "z_i": z_i})
 
     return dset
+
+
+def generate_test_data_time(start_year=1981, nyears=5, calendar="noleap"):
+    """Function to generate test dataset with monthly time resolution
+
+    Parameters
+    ----------
+    start_year : int, optional
+        Starting year, by default 1981
+    nyears : int, optional
+        Number of years to generate, by default 5
+    calendar : str, optional
+        CF-time recognized calendar, by default "noleap"
+
+    Returns
+    -------
+    xarray.core.dataset.Dataset
+        Dataset of annual averages
+    """
+    bounds = xr.cftime_range(
+        f"{start_year}-01-01", freq="MS", periods=(nyears * 12) + 1, calendar=calendar
+    )
+    time_bnds = list(zip(bounds[0:-1], bounds[1::]))
+    bnds = np.array([1, 2])
+
+    time = [x[0] + (x[1] - x[0]) / 2 for x in time_bnds]
+    time = xr.DataArray(time, {"time": time})
+
+    time_bnds = xr.DataArray(time_bnds, {"time": time, "bnds": bnds})
+
+    average_T1 = xr.DataArray(time_bnds[:, 0].values, {"time": time})
+    average_T2 = xr.DataArray(time_bnds[:, 1].values, {"time": time})
+    average_DT = average_T2 - average_T1
+
+    lon = [1.0, 2.0, 3.0, 4.0, 5.0]
+    lon = xr.DataArray(lon, {"lon": lon})
+
+    lat = [1.0, 2.0, 3.0, 4.0, 5.0]
+    lat = xr.DataArray(lat, {"lat": lat})
+
+    np.random.seed(123)
+    var_a = xr.DataArray(
+        np.random.normal(100, 20, (60, 5, 5)),
+        dims=(("time", "lat", "lon")),
+        coords={"time": time, "lat": lat, "lon": lon},
+    )
+
+    np.random.seed(456)
+    var_b = xr.DataArray(
+        np.random.normal(100, 20, (60, 5, 5)),
+        dims=(("time", "lat", "lon")),
+        coords={"time": time, "lat": lat, "lon": lon},
+    )
+
+    return xr.Dataset(
+        {
+            "time": time,
+            "lon": lon,
+            "lat": lat,
+            "time_bnds": time_bnds,
+            "average_T1": average_T1,
+            "average_T2": average_T2,
+            "average_DT": average_DT,
+            "var_a": var_a,
+            "var_b": var_b,
+        }
+    )

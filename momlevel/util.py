@@ -2,10 +2,74 @@
 
 import warnings
 import numpy as np
+import xarray as xr
 from momlevel import eos
 
 
-__all__ = ["default_coords", "validate_areacello", "validate_dataset"]
+__all__ = ["annual_average", "default_coords", "validate_areacello", "validate_dataset"]
+
+
+def annual_average(dset, tcoord="time"):
+    """Function to calculate annual averages
+
+    This function calculates the annual average of every variable contained
+    in the supplied xarray Dataset. The average is weighted by the number of
+    days in the month, as inferred from the calendar attributes of the time
+    coordinate objects. Non-numeric variables are skipped.
+
+    Parameters
+    ----------
+    dset : xarray.core.dataset.Dataset
+        Input dataset
+    tcoord : str, optional
+        Name of time coordinate, by default "time"
+
+    Returns
+    -------
+    xarray.core.dataset.Dataset
+    """
+    calendar = dset[tcoord].values[0].calendar
+
+    dim_coords = set(dset.dims).union(set(dset.coords))
+    variables = set(dset.variables) - dim_coords
+
+    _dset = xr.Dataset()
+    for var in variables:
+        if dset[var].dtype not in ["object", "timedelta64[ns]"]:
+            _dset[var] = dset[var]
+
+    groups = _dset.groupby(f"{tcoord}.year")
+
+    _annuals = []
+    for grp in sorted(dict(groups).keys()):
+        assert len(groups[grp][tcoord]) == 12
+        _annuals.append(
+            groups[grp].weighted(groups[grp][tcoord].dt.days_in_month).mean(tcoord)
+        )
+
+    result = xr.concat(_annuals, dim="time")
+    result = result.transpose("time", ...)
+
+    def _find_ann_midpoint(year, calendar=calendar):
+        """finds the midpoint of the year along the time dimension"""
+        bounds = xr.cftime_range(
+            f"{year}-01-01", freq="YS", periods=2, calendar=calendar
+        )
+        return bounds[0] + ((bounds[1] - bounds[0]) / 2)
+
+    new_time_axis = [
+        _find_ann_midpoint(str(x).zfill(4), calendar=calendar)
+        for x in dict(groups).keys()
+    ]
+
+    result = result.assign_coords({"time": new_time_axis})
+
+    for var in list(result.variables):
+        result[var].attrs = dset[var].attrs if var in list(dset.variables) else {}
+
+    result.attrs = dset.attrs
+
+    return result
 
 
 def default_coords(coord_names=None):
