@@ -4,6 +4,7 @@ channels:
   - conda-forge
 dependencies:
   - python
+  - nc-time-axis
   - numpy>=1.21.0
   - pip
   - pytest
