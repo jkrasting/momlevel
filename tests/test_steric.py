@@ -7,6 +7,7 @@ from momlevel.test_data import generate_test_data
 
 dset = generate_test_data()
 dset2 = generate_test_data(seed=999)
+dset3 = generate_test_data(start_year=1983, nyears=2, calendar="julian")
 
 
 def test_steric_broadcast():
@@ -148,3 +149,11 @@ def test_encoding_2():
     result, reference = steric(dset, domain="global", dtype="float64")
     assert result["reference_height"].encoding["dtype"] == "float64"
     assert result["steric"].encoding["dtype"] == "float64"
+
+
+def test_steric_annual_average():
+    result, reference = steric(dset3, annual=True)
+    assert len(result["time"]) == 2
+    result = result.sum()
+    assert np.allclose(result["steric"], 13.92956733)
+    assert np.allclose(result["delta_rho"], -18.11302839)

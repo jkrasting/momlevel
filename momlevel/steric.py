@@ -7,6 +7,7 @@ from momlevel.derived import calc_dz
 from momlevel.derived import calc_masso
 from momlevel.derived import calc_rho
 from momlevel.reference import setup_reference_state
+from momlevel.util import annual_average
 from momlevel.util import default_coords
 from momlevel.util import validate_dataset
 
@@ -24,6 +25,7 @@ def steric(
     domain="local",
     dtype="float32",
     strict=True,
+    annual=False,
     verbose=False,
 ):
     """Function to calculate steric sea level change
@@ -63,6 +65,8 @@ def steric(
     strict : bool, optional
         If True, errors are handled as fatal Exceptions. If False, errors are
         passed as warnings.  By default, True
+    annual : bool, optional
+        Perform annual averaging on results. By default, False
     verbose : bool, optional
         Verbose output. By default, False
 
@@ -165,6 +169,9 @@ def steric(
     for var in set(result.coords).union(result.dims):
         if var in dset.variables:
             result[var].attrs = dset[var].attrs
+
+    if annual:
+        result = annual_average(result)
 
     return (result, reference)
 
