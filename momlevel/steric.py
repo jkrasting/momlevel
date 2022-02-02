@@ -24,6 +24,7 @@ def steric(
     domain="local",
     dtype="float32",
     strict=True,
+    verbose=False,
 ):
     """Function to calculate steric sea level change
 
@@ -62,6 +63,8 @@ def steric(
     strict : bool, optional
         If True, errors are handled as fatal Exceptions. If False, errors are
         passed as warnings.  By default, True
+    verbose : bool, optional
+        Verbose output. By default, False
 
     Returns
     -------
@@ -86,10 +89,14 @@ def steric(
         assert isinstance(
             reference, xr.Dataset
         ), "`reference` must be an xarray Dataset"
+        if verbose:
+            print("Using supplied reference state")
     else:
         reference = setup_reference_state(
             dset, equation_of_state, coord_names=coord_names
         )
+        if verbose:
+            print("Generating reference stat from first timestep")
 
     # conduct some sanity checks on the reference state
     validate_dataset(reference, reference=True, strict=strict)
