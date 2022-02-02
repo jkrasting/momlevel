@@ -6,37 +6,66 @@ import numpy as np
 __all__ = ["generate_test_data", "generate_test_data_dz", "generate_test_data_time"]
 
 
-def generate_test_data(seed=123):
+def generate_test_data(start_year=1981, nyears=0, calendar="noleap", seed=123):
     """Function to generate dataset for unit testing
+
+    This function generates a test dataset. It includes 5 points in the
+    vertical, latitudinal, and longitudinal dimensions. The dataset
+    contains random values for `thetao`, `so`, `volcello`, `deptho` and
+    `areacello`.
+
+    If nyears == 0 (default), the time coordinate is a 5 point integer
+    array. If nyears >= 1, a real world monthly time axis is generated.
 
     Parameters
     ----------
+    start_year : int, optional
+        Starting year, by default 1981
+    nyears : int, optional
+        Number of years to generate, by default 0
+    calendar : str, optional
+        CF-time recognized calendar, by default "noleap"
     seed : int, optional
         Random number generator seed. By default, 123
 
     Returns
     -------
     xarray.core.dataset.Dataset
-        5x5x5x5 point dataset for unit testing
+        ntimes x 5 x 5 x 5 point dataset for unit testing
     """
-    np.random.seed(seed)
-    time = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims=("time"))
-    z_i = xr.DataArray(np.array([0.0, 5.0, 15.0, 185.0, 1815.0, 6185.0]), dims=("z_i"))
-    z_l = xr.DataArray(np.array([2.5, 10.0, 100.0, 1000.0, 4000.0]), dims=("z_l"))
-    xh = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims="xh")
-    yh = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims="yh")
 
-    thetao = xr.DataArray(
-        np.random.normal(15.0, 5.0, (5, 5, 5, 5)),
-        dims=({"time": time, "z_l": z_l, "yh": yh, "xh": xh}),
+    if nyears >= 1:
+        dset = generate_time_stub(
+            start_year=start_year, nyears=nyears, calendar=calendar
+        )
+    else:
+        dset = xr.Dataset()
+        dset["time"] = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims=("time"))
+
+    np.random.seed(seed)
+
+    ntimes = len(dset["time"])
+
+    dset["z_i"] = xr.DataArray(
+        np.array([0.0, 5.0, 15.0, 185.0, 1815.0, 6185.0]), dims=("z_i")
     )
-    so = xr.DataArray(
-        np.random.normal(35.0, 1.5, (5, 5, 5, 5)),
-        dims=({"time": time, "z_l": z_l, "yh": yh, "xh": xh}),
+    dset["z_l"] = xr.DataArray(
+        np.array([2.5, 10.0, 100.0, 1000.0, 4000.0]), dims=("z_l")
     )
-    volcello = xr.DataArray(
-        np.random.normal(1000.0, 100.0, (5, 5, 5, 5)),
-        dims=({"time": time, "z_l": z_l, "yh": yh, "xh": xh}),
+    dset["xh"] = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims="xh")
+    dset["yh"] = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims="yh")
+
+    dset["thetao"] = xr.DataArray(
+        np.random.normal(15.0, 5.0, (ntimes, 5, 5, 5)),
+        dims=({"time": dset.time, "z_l": dset.z_l, "yh": dset.yh, "xh": dset.xh}),
+    )
+    dset["so"] = xr.DataArray(
+        np.random.normal(35.0, 1.5, (ntimes, 5, 5, 5)),
+        dims=({"time": dset.time, "z_l": dset.z_l, "yh": dset.yh, "xh": dset.xh}),
+    )
+    dset["volcello"] = xr.DataArray(
+        np.random.normal(1000.0, 100.0, (ntimes, 5, 5, 5)),
+        dims=({"time": dset.time, "z_l": dset.z_l, "yh": dset.yh, "xh": dset.xh}),
     )
 
     deptho = np.array(
@@ -49,25 +78,13 @@ def generate_test_data(seed=123):
         ]
     )
 
-    deptho = xr.DataArray(deptho, dims=({"yh": yh, "xh": xh}))
+    dset["deptho"] = xr.DataArray(deptho, dims=({"yh": dset.yh, "xh": dset.xh}))
+
     areacello = xr.DataArray(
-        np.random.normal(100.0, 10.0, (5, 5)), dims=({"yh": yh, "xh": xh})
+        np.random.normal(100.0, 10.0, (5, 5)), dims=({"yh": dset.yh, "xh": dset.xh})
     )
     areacello = areacello / areacello.sum()
-    areacello = areacello * 3.6111092e14
-
-    dset = xr.Dataset(
-        {
-            "thetao": thetao,
-            "so": so,
-            "volcello": volcello,
-            "areacello": areacello,
-            "deptho": deptho,
-        }
-    )
-    dset = dset.assign_coords(
-        {"time": time, "z_l": z_l, "z_i": z_i, "yh": yh, "xh": xh}
-    )
+    dset["areacello"] = areacello * 3.6111092e14
 
     return dset
 
