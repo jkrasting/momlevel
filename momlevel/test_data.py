@@ -6,15 +6,20 @@ import numpy as np
 __all__ = ["generate_test_data", "generate_test_data_dz", "generate_test_data_time"]
 
 
-def generate_test_data():
+def generate_test_data(seed=123):
     """Function to generate dataset for unit testing
+
+    Parameters
+    ----------
+    seed : int, optional
+        Random number generator seed. By default, 123
 
     Returns
     -------
     xarray.core.dataset.Dataset
         5x5x5x5 point dataset for unit testing
     """
-    np.random.seed(123)
+    np.random.seed(seed)
     time = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims=("time"))
     z_i = xr.DataArray(np.array([0.0, 5.0, 15.0, 185.0, 1815.0, 6185.0]), dims=("z_i"))
     z_l = xr.DataArray(np.array([2.5, 10.0, 100.0, 1000.0, 4000.0]), dims=("z_l"))
@@ -67,8 +72,13 @@ def generate_test_data():
     return dset
 
 
-def generate_test_data_dz():
+def generate_test_data_dz(seed=123):
     """Function to generate test dataset for partial bottom cells
+
+    Parameters
+    ----------
+    seed : int, optional
+        Random number generator seed. By default, 123
 
     Returns
     -------
@@ -80,7 +90,7 @@ def generate_test_data_dz():
     yh = np.arange(10, 60, 10)
     yh = xr.DataArray(yh, dims=("yh"))
 
-    np.random.seed(123)
+    np.random.seed(seed)
 
     deptho = np.random.uniform(0.0, 100.0, (5, 5))
     deptho[2, 2] = np.nan
@@ -98,7 +108,7 @@ def generate_test_data_dz():
     return dset
 
 
-def generate_test_data_time(start_year=1981, nyears=5, calendar="noleap"):
+def generate_test_data_time(start_year=1981, nyears=5, calendar="noleap", seed=123):
     """Function to generate test dataset with monthly time resolution
 
     Parameters
@@ -109,6 +119,8 @@ def generate_test_data_time(start_year=1981, nyears=5, calendar="noleap"):
         Number of years to generate, by default 5
     calendar : str, optional
         CF-time recognized calendar, by default "noleap"
+    seed : int, optional
+        Random number generator seed. By default, 123
 
     Returns
     -------
@@ -136,14 +148,14 @@ def generate_test_data_time(start_year=1981, nyears=5, calendar="noleap"):
     lat = [1.0, 2.0, 3.0, 4.0, 5.0]
     lat = xr.DataArray(lat, {"lat": lat})
 
-    np.random.seed(123)
+    np.random.seed(seed)
     var_a = xr.DataArray(
         np.random.normal(100, 20, (60, 5, 5)),
         dims=(("time", "lat", "lon")),
         coords={"time": time, "lat": lat, "lon": lon},
     )
 
-    np.random.seed(456)
+    np.random.seed(seed * 2)
     var_b = xr.DataArray(
         np.random.normal(100, 20, (60, 5, 5)),
         dims=(("time", "lat", "lon")),

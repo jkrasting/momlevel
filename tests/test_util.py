@@ -102,11 +102,11 @@ def test_annual_average_1():
     """tests annual average of a noleap calendar dataset"""
     result = util.annual_average(dset3).sum()
     assert np.allclose(result["var_a"], 12484.37032342)
-    assert np.allclose(result["var_b"], 12541.00555234)
+    assert np.allclose(result["var_b"], 12605.66490932)
 
 
 def test_annual_average_2():
     """tests annual average of a julian calendar dataset"""
     result = util.annual_average(dset4).sum()
     assert np.allclose(result["var_a"], 12484.17097863)
-    assert np.allclose(result["var_b"], 12541.22911069)
+    assert np.allclose(result["var_b"], 12605.18695941)
