@@ -129,3 +129,21 @@ def test_thermosteric_global_values():
     assert np.allclose(reference["volo"], reference_results["global_reference_vol"])
     assert np.allclose(reference["rhoga"], reference_results["global_reference_rho"])
     assert np.allclose(result["thermosteric"], -1.38053154e-13)
+
+
+def test_encoding_1():
+    result, reference = steric(dset)
+    assert result["delta_rho"].encoding["dtype"] == "float32"
+    assert result["steric"].encoding["dtype"] == "float32"
+    result, reference = steric(dset, dtype="float64")
+    assert result["delta_rho"].encoding["dtype"] == "float64"
+    assert result["steric"].encoding["dtype"] == "float64"
+
+
+def test_encoding_2():
+    result, reference = steric(dset, domain="global")
+    assert result["reference_height"].encoding["dtype"] == "float32"
+    assert result["steric"].encoding["dtype"] == "float32"
+    result, reference = steric(dset, domain="global", dtype="float64")
+    assert result["reference_height"].encoding["dtype"] == "float64"
+    assert result["steric"].encoding["dtype"] == "float64"

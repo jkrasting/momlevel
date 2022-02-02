@@ -22,6 +22,7 @@ def steric(
     equation_of_state="Wright",
     variant="steric",
     domain="local",
+    dtype="float32",
     strict=True,
 ):
     """Function to calculate steric sea level change
@@ -56,6 +57,8 @@ def steric(
         Options are "steric", "thermosteric", and "halosteric", by default "steric"
     domain : str, optional
         Options are "local" and "global", by default "local"
+    dtype : str, optional
+        Encoding data type for output, by default "float32"
     strict : bool, optional
         If True, errors are handled as fatal Exceptions. If False, errors are
         passed as warnings.  By default, True
@@ -120,6 +123,8 @@ def steric(
         sealevel = reference_height * expansion_coeff
 
         result["reference_height"] = reference_height
+        result["reference_height"].encoding["dtype"] = dtype
+
         result[variant] = sealevel
 
     # otherwise calculate the change in density relative to the reference
@@ -127,11 +132,13 @@ def steric(
         delta_rho = xr.where(
             reference["volcello"].notnull(), rho - reference["rho"], np.nan
         )
+        delta_rho = delta_rho.transpose(tcoord, ...)
         delta_rho.attrs = {
             "long_name": "change in in situ density from reference state",
             "units": "kg m-3",
         }
         result["delta_rho"] = delta_rho
+        result["delta_rho"].encoding["dtype"] = dtype
 
         dz = calc_dz(dset[zcoord], dset[zbounds], dset["deptho"])
         sealevel = (-1.0 / rhozero) * ((dz * delta_rho).sum(zcoord))
@@ -144,6 +151,8 @@ def steric(
         "long_name": f"{variant.capitalize()} height adjustment",
         "units": "m",
     }
+
+    result[variant].encoding["dtype"] = dtype
 
     return (result, reference)
 
