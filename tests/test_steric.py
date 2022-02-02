@@ -20,10 +20,10 @@ def test_steric_broadcast():
 
 
 def test_steric_incorrect_area():
-    dset2 = dset.copy()
-    dset2["areacello"] = dset2["areacello"] * 1.3
+    _dset = dset.copy()
+    _dset["areacello"] = _dset["areacello"] * 1.3
     with pytest.raises(Exception):
-        _ = steric(dset2)
+        _ = steric(_dset)
 
 
 reference_results = {
