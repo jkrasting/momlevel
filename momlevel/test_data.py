@@ -127,6 +127,33 @@ def generate_test_data_time(start_year=1981, nyears=5, calendar="noleap", seed=1
     xarray.core.dataset.Dataset
         Dataset of annual averages
     """
+
+    dset = generate_time_stub(start_year=start_year, nyears=nyears, calendar=calendar)
+
+    lon = [1.0, 2.0, 3.0, 4.0, 5.0]
+    lon = xr.DataArray(lon, {"lon": lon})
+
+    lat = [1.0, 2.0, 3.0, 4.0, 5.0]
+    lat = xr.DataArray(lat, {"lat": lat})
+
+    np.random.seed(seed)
+    dset["var_a"] = xr.DataArray(
+        np.random.normal(100, 20, (60, 5, 5)),
+        dims=(("time", "lat", "lon")),
+        coords={"time": dset.time, "lat": lat, "lon": lon},
+    )
+
+    np.random.seed(seed * 2)
+    dset["var_b"] = xr.DataArray(
+        np.random.normal(100, 20, (60, 5, 5)),
+        dims=(("time", "lat", "lon")),
+        coords={"time": dset.time, "lat": lat, "lon": lon},
+    )
+
+    return dset
+
+
+def generate_time_stub(start_year=1981, nyears=5, calendar="noleap"):
     bounds = xr.cftime_range(
         f"{start_year}-01-01", freq="MS", periods=(nyears * 12) + 1, calendar=calendar
     )
@@ -142,36 +169,12 @@ def generate_test_data_time(start_year=1981, nyears=5, calendar="noleap", seed=1
     average_T2 = xr.DataArray(time_bnds[:, 1].values, {"time": time})
     average_DT = average_T2 - average_T1
 
-    lon = [1.0, 2.0, 3.0, 4.0, 5.0]
-    lon = xr.DataArray(lon, {"lon": lon})
-
-    lat = [1.0, 2.0, 3.0, 4.0, 5.0]
-    lat = xr.DataArray(lat, {"lat": lat})
-
-    np.random.seed(seed)
-    var_a = xr.DataArray(
-        np.random.normal(100, 20, (60, 5, 5)),
-        dims=(("time", "lat", "lon")),
-        coords={"time": time, "lat": lat, "lon": lon},
-    )
-
-    np.random.seed(seed * 2)
-    var_b = xr.DataArray(
-        np.random.normal(100, 20, (60, 5, 5)),
-        dims=(("time", "lat", "lon")),
-        coords={"time": time, "lat": lat, "lon": lon},
-    )
-
     return xr.Dataset(
         {
             "time": time,
-            "lon": lon,
-            "lat": lat,
             "time_bnds": time_bnds,
             "average_T1": average_T1,
             "average_T2": average_T2,
             "average_DT": average_DT,
-            "var_a": var_a,
-            "var_b": var_b,
         }
     )
