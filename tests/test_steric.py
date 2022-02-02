@@ -6,6 +6,7 @@ from momlevel.eos import wright
 from momlevel.test_data import generate_test_data
 
 dset = generate_test_data()
+dset2 = generate_test_data(seed=999)
 
 
 def test_steric_broadcast():
@@ -117,6 +118,18 @@ def test_thermosteric_global_values():
     assert np.allclose(reference["volo"], reference_results["global_reference_vol"])
     assert np.allclose(reference["rhoga"], reference_results["global_reference_rho"])
     assert np.allclose(result["thermosteric"], -1.38053154e-13)
+
+
+def test_steric_read_reference():
+    _, reference = steric(dset2)
+    result, reference = steric(dset, verbose=True, reference=reference)
+    result = result.sum()
+    reference = reference.sum()
+    assert np.allclose(reference["thetao"], 1957.37033788)
+    assert np.allclose(reference["so"], 4382.2088354)
+    assert np.allclose(reference["volcello"], 125023.36640225)
+    assert np.allclose(reference["rho"], 128763.62727387)
+    assert np.allclose(result["steric"], -9.47871504)
 
 
 def test_encoding_1():
