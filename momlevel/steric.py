@@ -154,6 +154,11 @@ def steric(
 
     result[variant].encoding["dtype"] = dtype
 
+    # copy coordinate and dimenstion attributes
+    for var in set(result.coords).union(result.dims):
+        if var in dset.variables:
+            result[var].attrs = dset[var].attrs
+
     return (result, reference)
 
 
