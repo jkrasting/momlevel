@@ -49,6 +49,7 @@ def test_halosteric_values():
     assert np.allclose(reference["volcello"], reference_results["reference_vol"])
     assert np.allclose(reference["rho"], reference_results["reference_rho"])
     assert np.allclose(result["halosteric"], 27.92864208)
+    assert np.allclose(result["delta_rho"], -83.05865654)
 
 
 def test_steric_values():
@@ -60,6 +61,7 @@ def test_steric_values():
     assert np.allclose(reference["volcello"], reference_results["reference_vol"])
     assert np.allclose(reference["rho"], reference_results["reference_rho"])
     assert np.allclose(result["steric"], 18.0003869)
+    assert np.allclose(result["delta_rho"], -34.88983854)
 
 
 def test_thermosteric_values():
@@ -71,6 +73,7 @@ def test_thermosteric_values():
     assert np.allclose(reference["volcello"], reference_results["reference_vol"])
     assert np.allclose(reference["rho"], reference_results["reference_rho"])
     assert np.allclose(result["thermosteric"], -10.02263377)
+    assert np.allclose(result["delta_rho"], 49.15537956)
 
 
 def test_halosteric_global_values():
