@@ -14,12 +14,21 @@ level-related fields with MOM6 output.
    :hidden:
    :caption: Background
 
+   objective
    eos
+   steric
 
 ..   install
 ..   virtualenv
 ..   testing
 
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Installation and Contributing
+
+   install
+   contrib
 
 .. * :doc:`generate_diags`
 .. * :doc:`sqlite_format`
@@ -43,6 +52,18 @@ level-related fields with MOM6 output.
 
    api
 
+
+Quick Install
+-------------
+To install from Anaconda:
+
+.. parsed-literal::
+   conda install -c krasting momlevel
+
+To install from PyPi:
+
+.. parsed-literal::
+   pip install momlevel
 
 Disclaimer
 ----------
