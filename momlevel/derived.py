@@ -147,6 +147,47 @@ def calc_dz(levels, interfaces, depth, fraction=False):
     return result
 
 
+def calc_n2(thetao, so, rhozero=1035.0, eos="Wright", gravity=-9.8, zcoord="z_l"):
+    """Function to calculate the buoyancy frequency
+
+    This function calculates the Brunt-Väisälä frequency which is commonly used
+    to evaluate stratification.
+
+    This field can be converted to cycles per hour (CPH) via:
+        np.sqrt(n2)*3600.
+
+    Parameters
+    ----------
+    thetao : xarray.core.dataarray.DataArray
+        Sea water potential temperature in units = degC
+    so : xarray.core.dataarray.DataArray
+        Sea water salinity in units = 0.001
+    rhozero : float, optional
+        Globally constant reference density in kg m-3, by default 1035.0
+    eos : str, optional
+        Equation of state to use in calculations, by default "Wright"
+    gravity : float, optional
+        Gravitational acceleration constant in m s-2, by default -9.8
+    zcoord : str, optional
+        Vertical coorindate name, by default "z_l"
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+    """
+
+    # this field is called `obvfsq` in CMIP
+    rhopot0 = calc_pdens(thetao, so, level=0.0, eos=eos)
+    drho_dz = rhopot0.differentiate(zcoord)
+    n2 = (-gravity / rhozero) * drho_dz
+    n2.attrs = {
+        "standard_name": "square_of_brunt_vaisala_frequency_in_sea_water",
+        "long_name": "Square of seawater buoyancy frequency",
+        "units": "s-2",
+    }
+    return n2
+
+
 def calc_masso(rho, volcello, tcoord="time"):
     """Function to calculate the total ocean mass
 
