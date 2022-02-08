@@ -1,5 +1,6 @@
 """ derived.py - module for calculating derived fields """
 
+import xgcm
 import numpy as np
 import xarray as xr
 from momlevel import util
@@ -82,6 +83,44 @@ def calc_beta(thetao, so, pres, eos="Wright"):
     }
 
     return beta
+
+
+def calc_rel_vort(dset, varname_map=None, coord_dict=None, symmetric=False):
+
+    if varname_map is None:
+        varname_map = {
+            "u": "uo",
+            "v": "vo",
+            "dx": "dxCu",
+            "dy": "dyCv",
+            "area": "areacello_bu",
+        }
+
+    # check that dataset contains u and v fields
+    required = set(varname_map.values())
+    varnames = set(dset.variables)
+    missing = list(required - varnames)
+    if len(missing) > 0:
+        raise ValueError(f"Input dataset missing fields: {missing}")
+
+    # get xgcm grid object
+    grid = util.get_xgcm_grid(dset, coord_dict=coord_dict, symmetric=symmetric)
+
+    relvort = (
+        -grid.diff(
+            dset[varname_map["u"]] * dset[varname_map["dx"]], "Y", boundary="fill"
+        )
+        + grid.diff(
+            dset[varname_map["v"]] * dset[varname_map["dy"]], "X", boundary="fill"
+        )
+    ) / dset[varname_map["area"]]
+
+    relvort.attrs = {
+        "standard_name": "ocean_relative_vorticity",
+        "long_name": "Ocean relative vorticity",
+        "units": "s-1",
+    }
+    return relvort
 
 
 def calc_dz(levels, interfaces, depth, fraction=False):
@@ -258,6 +297,26 @@ def calc_pdens(thetao, so, level=0.0, eos="Wright"):
     }
 
     return rhopot
+
+
+def calc_sw_pot_vort(zeta, coriolis, n2, gravity=9.8, coord_dict=None, symmetric=False):
+
+    # create an internal dataset for xgcm purposes
+    _dset = xr.Dataset({"zeta": zeta, "coriolis": coriolis, "n2": n2})
+    grid = util.get_xgcm_grid(_dset, coord_dict=coord_dict, symmetric=symmetric)
+
+    # interpolate N2 to the corner points
+    n2 = grid.interp(n2, axis=["X", "Y"], boundary="fill")
+
+    # calculate potential vorticity
+    swpotvort = (zeta + coriolis) * (n2 / gravity)
+
+    swpotvort.attrs = {
+        "long_name": "Shallow water potential vorticity",
+        "units": "m-1 s-1",
+    }
+
+    return swpotvort
 
 
 def calc_rho(thetao, so, pres, eos="Wright"):

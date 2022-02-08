@@ -1,12 +1,19 @@
 """ util.py - generic utilities for momlevel """
 
 import warnings
+import xgcm
 import numpy as np
 import xarray as xr
 from momlevel import eos
 
 
-__all__ = ["annual_average", "default_coords", "validate_areacello", "validate_dataset"]
+__all__ = [
+    "annual_average",
+    "default_coords",
+    "get_xgcm_grid",
+    "validate_areacello",
+    "validate_dataset",
+]
 
 
 def annual_average(dset, tcoord="time"):
@@ -123,6 +130,40 @@ def eos_func_from_str(eos_str, func_name="density"):
         raise ValueError(f"Unknown equation of state: {eos_str}")
 
     return eos.__dict__[eos_str].__dict__[func_name]
+
+
+def get_xgcm_grid(dset, coord_dict=None, symmetric=False):
+
+    # define a dictionary of coordinate names if not provided
+    if coord_dict is None:
+        coord_dict = {
+            "xcenter": "xh",
+            "ycenter": "yh",
+            "xcorner": "xq",
+            "ycorner": "yq",
+        }
+
+    if symmetric:
+        print("Doing symmetric")
+        result = xgcm.Grid(
+            dset,
+            coords={
+                "X": {"center": coord_dict["xcenter"], "outer": coord_dict["xcorner"]},
+                "Y": {"center": coord_dict["ycenter"], "outer": coord_dict["ycorner"]},
+            },
+            periodic=["X"],
+        )
+    else:
+        result = xgcm.Grid(
+            dset,
+            coords={
+                "X": {"center": coord_dict["xcenter"], "right": coord_dict["xcorner"]},
+                "Y": {"center": coord_dict["ycenter"], "right": coord_dict["ycorner"]},
+            },
+            periodic=["X"],
+        )
+
+    return result
 
 
 def validate_areacello(areacello, reference=3.6111092e14, tolerance=0.02):
