@@ -35,13 +35,7 @@ def calc_alpha(thetao, so, pres, eos="Wright"):
     # obtain the function object corresponding to the eos
     eos_func = util.eos_func_from_str(eos, func_name="alpha")
 
-    alpha = xr.apply_ufunc(
-        eos_func,
-        thetao,
-        so,
-        pres,
-        dask="allowed",
-    )
+    alpha = xr.apply_ufunc(eos_func, thetao, so, pres, dask="allowed",)
 
     alpha.attrs = {
         "long_name": "Thermal expansion coefficient",
@@ -79,13 +73,7 @@ def calc_beta(thetao, so, pres, eos="Wright"):
     # obtain the function object corresponding to the eos
     eos_func = util.eos_func_from_str(eos, func_name="beta")
 
-    beta = xr.apply_ufunc(
-        eos_func,
-        thetao,
-        so,
-        pres,
-        dask="allowed",
-    )
+    beta = xr.apply_ufunc(eos_func, thetao, so, pres, dask="allowed",)
 
     beta.attrs = {
         "long_name": "Haline contraction coefficient",
@@ -219,13 +207,7 @@ def calc_rho(thetao, so, pres, eos="Wright"):
     # obtain the function object corresponding to the eos
     eos_func = util.eos_func_from_str(eos)
 
-    rho = xr.apply_ufunc(
-        eos_func,
-        thetao,
-        so,
-        pres,
-        dask="allowed",
-    )
+    rho = xr.apply_ufunc(eos_func, thetao, so, pres, dask="allowed",)
 
     rho.attrs = {
         "standard_name": "sea_water_density",
