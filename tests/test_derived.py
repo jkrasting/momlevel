@@ -32,6 +32,16 @@ def test_calc_rho():
     assert np.allclose(rho.sum(), 643847.01494266)
 
 
+def test_calc_pdens_1():
+    rhopot = derived.calc_pdens(dset1.thetao, dset1.so, eos="Wright")
+    assert np.allclose(rhopot.sum(), 641125.11681861)
+
+
+def test_calc_pdens_2():
+    rhopot = derived.calc_pdens(dset1.thetao, dset1.so, level=2000.0, eos="Wright")
+    assert np.allclose(rhopot.sum(), 646520.66361675)
+
+
 def test_calc_alpha():
     alpha = derived.calc_alpha(dset1.thetao, dset1.so, dset1.z_l * 1.0e4, eos="Wright")
     assert np.allclose(alpha.sum(), 0.14270076)

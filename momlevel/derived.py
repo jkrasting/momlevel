@@ -180,6 +180,45 @@ def calc_masso(rho, volcello, tcoord="time"):
     return masso
 
 
+def calc_pdens(thetao, so, level=0.0, eos="Wright"):
+    """Function to calculate potential density
+
+    This function calculates potential density referenced to a given
+    depth level (z). By default, this is the surface (i.e. `sigma0`).
+    The pressure associated with z is defined such that p = z * 1.e4.
+
+    Parameters
+    ----------
+    thetao : xarray.core.dataarray.DataArray
+        Sea water potential temperature in units = degC
+    so : xarray.core.dataarray.DataArray
+        Sea water salinity in units = 0.001
+    level : float, optional
+        Reference depth level in m, by default 0.
+    eos : str, optional
+        Equation of state, by default "Wright"
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+        Sea water potential density
+    """
+
+    assert 0.0 <= level <= 7500.0, "specified level must be between 0 and 7500 m"
+
+    # note: approximate pressure from depth
+    rhopot = calc_rho(thetao, so, level * 1.0e4, eos=eos)
+
+    rhopot.attrs = {
+        "standard_name": "sea_water_potential_density",
+        "long_name": f"Sea water potential density referenced to {level} m",
+        "comment": f"calculated with the {eos} equation of state",
+        "units": "kg m-3",
+    }
+
+    return rhopot
+
+
 def calc_rho(thetao, so, pres, eos="Wright"):
     """Function to calculate in situ density
 
