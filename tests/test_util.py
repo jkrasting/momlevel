@@ -8,12 +8,14 @@ from momlevel.test_data import (
     generate_test_data,
     generate_test_data_dz,
     generate_test_data_time,
+    generate_test_data_uv,
 )
 
 dset = generate_test_data()
 dset2 = generate_test_data_dz()
 dset3 = generate_test_data_time()
 dset4 = generate_test_data_time(calendar="julian")
+dset5 = generate_test_data_uv()
 
 
 def test_default_coords_1():
@@ -110,3 +112,19 @@ def test_annual_average_2():
     result = util.annual_average(dset4).sum()
     assert np.allclose(result["var_a"], 12484.17097863)
     assert np.allclose(result["var_b"], 12605.18695941)
+
+
+def test_get_xgcm_grid_1():
+    """tests xgcm grid construction for non-symmetric input"""
+    result = util.get_xgcm_grid(dset5)
+    answer = dict({"center": "right", "right": "center"})
+    assert result.__dict__["axes"]["X"].__dict__["_default_shifts"] == answer
+    assert result.__dict__["axes"]["Y"].__dict__["_default_shifts"] == answer
+
+
+def test_get_xgcm_grid_2():
+    """tests xgcm grid construction for symmetric input"""
+    result = util.get_xgcm_grid(dset5, symmetric=True)
+    answer = dict({"center": "outer", "outer": "center"})
+    assert result.__dict__["axes"]["X"].__dict__["_default_shifts"] == answer
+    assert result.__dict__["axes"]["Y"].__dict__["_default_shifts"] == answer
