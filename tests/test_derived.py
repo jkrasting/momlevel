@@ -4,9 +4,11 @@ import numpy as np
 from momlevel import derived
 from momlevel.test_data import generate_test_data
 from momlevel.test_data import generate_test_data_dz
+from momlevel.test_data import generate_test_data_uv
 
 dset1 = generate_test_data()
 dset2 = generate_test_data_dz()
+dset3 = generate_test_data_uv()
 
 
 def test_calc_dz_1():
@@ -77,3 +79,17 @@ def test_calc_volo_1():
 def test_rhoga():
     rhoga = derived.calc_rhoga(pytest.masso, pytest.volo)
     assert np.allclose(rhoga.sum(), 5128.04620652)
+
+
+def test_calc_rel_vort():
+    result = derived.calc_rel_vort(dset3)
+    assert np.allclose(result.sum(), -6.92989256e-14)
+
+
+def test_calc_sw_pot_vort():
+    zeta = derived.calc_rel_vort(dset3)
+    n2 = derived.calc_n2(dset1.thetao, dset1.so)
+    pv = derived.calc_sw_pot_vort(zeta, dset3.Coriolis, n2)
+    # convert to WOCE conventional units of 10*14 cm-1 s-1
+    pv = (pv / 100.0) * 1e14
+    assert np.allclose(pv.sum(), 118579.04794402)
