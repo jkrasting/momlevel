@@ -323,7 +323,7 @@ def calc_pdens(thetao, so, level=0.0, eos="Wright"):
     return rhopot
 
 
-def calc_sw_pot_vort(zeta, coriolis, n2, gravity=9.8, coord_dict=None, symmetric=False):
+def calc_pv(zeta, coriolis, n2, gravity=9.8, coord_dict=None, symmetric=False):
     """Function to calculate ocean potential vorticity
 
     This function calculates potential vorticity given the relative vorticity,
@@ -362,7 +362,7 @@ def calc_sw_pot_vort(zeta, coriolis, n2, gravity=9.8, coord_dict=None, symmetric
     swpotvort = (zeta + coriolis) * (n2 / gravity)
 
     swpotvort.attrs = {
-        "long_name": "Shallow water potential vorticity",
+        "long_name": "Ocean potential vorticity",
         "units": "m-1 s-1",
     }
 
