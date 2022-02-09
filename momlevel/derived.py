@@ -237,6 +237,10 @@ def calc_n2(thetao, so, rhozero=1035.0, eos="Wright", gravity=-9.8, zcoord="z_l"
     -------
     xarray.core.dataarray.DataArray
        Brunt-Väisälä frequency, or buoyancy frequency, in s-2
+
+    See Also:
+    ---------
+    calc_pdens : Calculates potential density
     """
 
     # this field is called `obvfsq` in CMIP
@@ -349,6 +353,11 @@ def calc_pv(zeta, coriolis, n2, gravity=9.8, coord_dict=None, symmetric=False):
     -------
     xarray.core.dataarray.DataArray
         Ocean potential vorticity in m-1 s-1
+
+    See Also
+    --------
+    calc_n2 : Calculates Brunt-Väisälä (buoyancy) frequency
+    calc_rel_vort : Calculate relative vorticity (zeta)
     """
 
     # create an internal dataset for xgcm purposes
