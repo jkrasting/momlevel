@@ -5,7 +5,17 @@ import xarray as xr
 from momlevel import util
 
 
-__all__ = ["calc_alpha", "calc_dz", "calc_masso", "calc_rho", "calc_rhoga", "calc_volo"]
+__all__ = [
+    "calc_alpha",
+    "calc_dz",
+    "calc_n2",
+    "calc_masso",
+    "calc_pv",
+    "calc_rel_vort",
+    "calc_rho",
+    "calc_rhoga",
+    "calc_volo",
+]
 
 
 def calc_alpha(thetao, so, pres, eos="Wright"):
