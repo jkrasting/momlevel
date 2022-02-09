@@ -224,6 +224,12 @@ good-names=i,
            C5,
            p0,
            I_denom,
+           I_denom2,
+           average_T1,
+           average_T2,
+           average_DT,
+           n2,
+           dz,
            so,
            e,
            xh,
@@ -513,7 +519,7 @@ exclude-too-few-public-methods=
 ignored-parents=
 
 # Maximum number of arguments for function / method.
-max-args=9
+max-args=12
 
 # Maximum number of attributes for a class (see R0902).
 max-attributes=7
@@ -522,10 +528,10 @@ max-attributes=7
 max-bool-expr=5
 
 # Maximum number of branch for function / method body.
-max-branches=20
+max-branches=23
 
 # Maximum number of locals for function / method body.
-max-locals=25
+max-locals=28
 
 # Maximum number of parents for a class (see R0901).
 max-parents=7

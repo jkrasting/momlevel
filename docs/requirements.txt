@@ -4,3 +4,4 @@ matplotlib
 netcdf4
 numpy>=1.21.0
 xarray>=0.20.0
+xgcm

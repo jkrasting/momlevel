@@ -84,6 +84,68 @@ def calc_beta(thetao, so, pres, eos="Wright"):
     return beta
 
 
+def calc_rel_vort(dset, varname_map=None, coord_dict=None, symmetric=False):
+    """Function to calculate relative vorticity
+
+    This function calculates the vertical component of the relative vorticity
+    from the u and v components of the flow.
+
+    Parameters
+    ----------
+    dset : xarray.core.dataset.Dataset
+        Input dataset. Required variables are `uo`, `vo`, `dxCu`, `dyCv`,
+        and `areacello_bu`
+    varname_map : :obj:`dict`, optional
+        Dictionary of variable mappings. Variables are renamed according to these
+        mappings at the start of the routine, by default None.
+    coord_dict : :obj:`dict`, optional
+        Dictionary of xgcm coordinate name mappings, if different from
+        the MOM6 default values, by default None
+    symmetric : bool
+        Flag denoting symmetric grid, by default False
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+        Ocean relative vorticity in s-1
+    """
+
+    if varname_map is None:
+        varname_map = {
+            "u": "uo",
+            "v": "vo",
+            "dx": "dxCu",
+            "dy": "dyCv",
+            "area": "areacello_bu",
+        }
+
+    # check that dataset contains u and v fields
+    required = set(varname_map.values())
+    varnames = set(dset.variables)
+    missing = list(required - varnames)
+    if len(missing) > 0:
+        raise ValueError(f"Input dataset missing fields: {missing}")
+
+    # get xgcm grid object
+    grid = util.get_xgcm_grid(dset, coord_dict=coord_dict, symmetric=symmetric)
+
+    relvort = (
+        -grid.diff(
+            dset[varname_map["u"]] * dset[varname_map["dx"]], "Y", boundary="fill"
+        )
+        + grid.diff(
+            dset[varname_map["v"]] * dset[varname_map["dy"]], "X", boundary="fill"
+        )
+    ) / dset[varname_map["area"]]
+
+    relvort.attrs = {
+        "standard_name": "ocean_relative_vorticity",
+        "long_name": "Ocean relative vorticity",
+        "units": "s-1",
+    }
+    return relvort
+
+
 def calc_dz(levels, interfaces, depth, fraction=False):
     """Function to calculate dz that accounts for partial bottom cells
 
@@ -174,6 +236,11 @@ def calc_n2(thetao, so, rhozero=1035.0, eos="Wright", gravity=-9.8, zcoord="z_l"
     Returns
     -------
     xarray.core.dataarray.DataArray
+       Brunt-Väisälä frequency, or buoyancy frequency, in s-2
+
+    See Also:
+    ---------
+    calc_pdens : Calculates potential density
     """
 
     # this field is called `obvfsq` in CMIP
@@ -258,6 +325,57 @@ def calc_pdens(thetao, so, level=0.0, eos="Wright"):
     }
 
     return rhopot
+
+
+def calc_pv(zeta, coriolis, n2, gravity=9.8, coord_dict=None, symmetric=False):
+    """Function to calculate ocean potential vorticity
+
+    This function calculates potential vorticity given the relative vorticity,
+    Coriolis parameter, and buoyancy frequency as inputs.
+
+    Parameters
+    ----------
+    zeta : xarray.core.dataarray.DataArray
+        Vertical component of the relative vorticity in units = s-1
+    coriolis : xarray.core.dataarray.DataArray
+        Coriolis parameter grid cell corners, in units = s-1
+    n2 : xarray.core.dataarray.DataArray
+        Brunt-Väisälä frequency in units = s-2
+    gravity : float, optional
+        Gravitational acceleration constant, by default 9.8 m s-2
+    coord_dict : :obj:`dict`, optional
+        Dictionary of xgcm coordinate name mappings, if different from
+        the MOM6 default values, by default None
+    symmetric : bool
+        Flag denoting symmetric grid, by default False
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+        Ocean potential vorticity in m-1 s-1
+
+    See Also
+    --------
+    calc_n2 : Calculates Brunt-Väisälä (buoyancy) frequency
+    calc_rel_vort : Calculate relative vorticity (zeta)
+    """
+
+    # create an internal dataset for xgcm purposes
+    _dset = xr.Dataset({"zeta": zeta, "coriolis": coriolis, "n2": n2})
+    grid = util.get_xgcm_grid(_dset, coord_dict=coord_dict, symmetric=symmetric)
+
+    # interpolate N2 to the corner points
+    n2 = grid.interp(n2, axis=["X", "Y"], boundary="fill")
+
+    # calculate potential vorticity
+    swpotvort = (zeta + coriolis) * (n2 / gravity)
+
+    swpotvort.attrs = {
+        "long_name": "Ocean potential vorticity",
+        "units": "m-1 s-1",
+    }
+
+    return swpotvort
 
 
 def calc_rho(thetao, so, pres, eos="Wright"):
