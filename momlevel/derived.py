@@ -1,6 +1,5 @@
 """ derived.py - module for calculating derived fields """
 
-import xgcm
 import numpy as np
 import xarray as xr
 from momlevel import util
