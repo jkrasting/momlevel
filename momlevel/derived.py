@@ -248,8 +248,8 @@ def calc_n2(thetao, so, rhozero=1035.0, eos="Wright", gravity=-9.8, zcoord="z_l"
     xarray.core.dataarray.DataArray
        Brunt-Väisälä frequency, or buoyancy frequency, in s-2
 
-    See Also:
-    ---------
+    See Also
+    --------
     calc_pdens : Calculates potential density
     """
 
