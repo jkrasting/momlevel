@@ -9,3 +9,4 @@ dependencies:
   - pip
   - pytest
   - xarray>=0.20.0
+  - xgcm
