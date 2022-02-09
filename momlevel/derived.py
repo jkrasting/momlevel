@@ -85,6 +85,30 @@ def calc_beta(thetao, so, pres, eos="Wright"):
 
 
 def calc_rel_vort(dset, varname_map=None, coord_dict=None, symmetric=False):
+    """Function to calculate relative vorticity
+
+    This function calculates the vertical component of the relative vorticity
+    from the u and v components of the flow.
+
+    Parameters
+    ----------
+    dset : xarray.core.dataset.Dataset
+        Input dataset. Required variables are `uo`, `vo`, `dxCu`, `dyCv`,
+        and `areacello_bu`
+    varname_map : :obj:`dict`, optional
+        Dictionary of variable mappings. Variables are renamed according to these
+        mappings at the start of the routine, by default None.
+    coord_dict : :obj:`dict`, optional
+        Dictionary of xgcm coordinate name mappings, if different from
+        the MOM6 default values, by default None
+    symmetric : bool
+        Flag denoting symmetric grid, by default False
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+        Ocean relative vorticity in s-1
+    """
 
     if varname_map is None:
         varname_map = {
@@ -212,6 +236,7 @@ def calc_n2(thetao, so, rhozero=1035.0, eos="Wright", gravity=-9.8, zcoord="z_l"
     Returns
     -------
     xarray.core.dataarray.DataArray
+       Brunt-Väisälä frequency, or buoyancy frequency, in s-2
     """
 
     # this field is called `obvfsq` in CMIP
@@ -299,6 +324,32 @@ def calc_pdens(thetao, so, level=0.0, eos="Wright"):
 
 
 def calc_sw_pot_vort(zeta, coriolis, n2, gravity=9.8, coord_dict=None, symmetric=False):
+    """Function to calculate ocean potential vorticity
+
+    This function calculates potential vorticity given the relative vorticity,
+    Coriolis parameter, and buoyancy frequency as inputs.
+
+    Parameters
+    ----------
+    zeta : xarray.core.dataarray.DataArray
+        Vertical component of the relative vorticity in units = s-1
+    coriolis : xarray.core.dataarray.DataArray
+        Coriolis parameter grid cell corners, in units = s-1
+    n2 : xarray.core.dataarray.DataArray
+        Brunt-Väisälä frequency in units = s-2
+    gravity : float, optional
+        Gravitational acceleration constant, by default 9.8 m s-2
+    coord_dict : :obj:`dict`, optional
+        Dictionary of xgcm coordinate name mappings, if different from
+        the MOM6 default values, by default None
+    symmetric : bool
+        Flag denoting symmetric grid, by default False
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+        Ocean potential vorticity in m-1 s-1
+    """
 
     # create an internal dataset for xgcm purposes
     _dset = xr.Dataset({"zeta": zeta, "coriolis": coriolis, "n2": n2})

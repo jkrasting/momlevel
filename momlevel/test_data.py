@@ -250,6 +250,27 @@ def generate_test_data_uv(start_year=1981, nyears=0, calendar="noleap", seed=123
 
 
 def generate_time_stub(start_year=1981, nyears=5, calendar="noleap"):
+    """Function to generate a dataset with a time coordinate
+
+    This function creates a "stub" dataset that can be used a starting
+    point for further test datasets.  It returns a cf-time index and
+    related FMS bounds and helper fields. Monthly values for `nyears`
+    are generated.
+
+    Parameters
+    ----------
+    start_year : int
+        Starting year for time coordinate, by default 1981
+    nyears : int
+        Number of years of monthly data to generate, by default 5
+    calendar : str
+        Cf-time recognized calendar, by default "noleap"
+
+    Returns
+    -------
+    xarray.core.dataset.Dataset
+        Stub dataset with time coordinate
+    """
     bounds = xr.cftime_range(
         f"{start_year}-01-01", freq="MS", periods=(nyears * 12) + 1, calendar=calendar
     )

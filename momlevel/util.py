@@ -133,6 +133,28 @@ def eos_func_from_str(eos_str, func_name="density"):
 
 
 def get_xgcm_grid(dset, coord_dict=None, symmetric=False):
+    """Function to generate xgcm grid
+
+    This function generates an xgcm grid based on an input dataset.
+    Default MOM6 coordinate names are assumed but can be overridden
+    using the `coord_dict` kwarg. Symmetric grids should be identified
+    by setting `symmetric=True`.
+
+    Parameters
+    ----------
+    dset : xarray.core.dataset.Dataset
+        Input dataset
+    coord_dict : dict, optional
+        Dictionary of xgcm coordinate name mappings, if different from
+        the MOM6 default values, by default None
+    symmetric : bool
+        Flag denoting symmetric grid, by default False
+
+    Returns
+    -------
+    xgcm.Grid
+        Grid object from xgcm
+    """
 
     # define a dictionary of coordinate names if not provided
     if coord_dict is None:
