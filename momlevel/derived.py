@@ -402,7 +402,7 @@ def calc_rho(thetao, so, pres, eos="Wright"):
     so : xarray.core.dataarray.DataArray
         Sea water salinity in units = 0.001
     pres : xarray.core.dataarray.DataArray
-        Pressure, in units of Pa
+        Sea water gauge pressure, in units of Pa
     eos : str
         Equation of state, by default "Wright"
 

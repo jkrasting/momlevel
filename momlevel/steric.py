@@ -87,6 +87,7 @@ def steric(
     validate_dataset(dset, strict=strict, additional_vars=additional_vars)
 
     # approximate pressure from depth coordinate
+    # 1 meter of depth is approximately 1 db or 10**4 Pa
     pres = dset[zcoord] * 1.0e4
 
     if reference is not None:
