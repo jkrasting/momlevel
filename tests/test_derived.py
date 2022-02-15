@@ -36,7 +36,7 @@ def test_calc_rho():
 
 def test_calc_n2():
     obvfsq = derived.calc_n2(dset1.thetao, dset1.so)
-    assert np.allclose(obvfsq.sum(), 0.11040719)
+    assert np.allclose(obvfsq.sum(), 0.11750034)
 
 
 def test_calc_pdens_1():
@@ -92,4 +92,4 @@ def test_calc_pv():
     pv = derived.calc_pv(zeta, dset3.Coriolis, n2)
     # convert to WOCE conventional units of 10*14 cm-1 s-1
     pv = (pv / 100.0) * 1e14
-    assert np.allclose(pv.sum(), 118605.5965454)
+    assert np.allclose(pv.sum(), 119787.96470602)
