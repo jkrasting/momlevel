@@ -1,5 +1,7 @@
 """ momlevel - sea level routines for the MOM ocean model """
 
+from .version import __version__
+
 from . import derived
 from . import eos
 from . import reference

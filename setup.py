@@ -1,4 +1,6 @@
 """ setup script """
 import setuptools
 
-setuptools.setup()
+exec(open("momlevel/version.py").read())
+
+setuptools.setup(version=__version__)
