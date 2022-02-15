@@ -1,5 +1,6 @@
 """ derived.py - module for calculating derived fields """
 
+import xgcm
 import numpy as np
 import xarray as xr
 from momlevel import util
@@ -7,6 +8,7 @@ from momlevel import util
 
 __all__ = [
     "calc_alpha",
+    "calc_beta",
     "calc_dz",
     "calc_n2",
     "calc_masso",
@@ -231,11 +233,21 @@ def calc_dz(levels, interfaces, depth, fraction=False):
     return result
 
 
-def calc_n2(thetao, so, rhozero=1035.0, eos="Wright", gravity=-9.8, zcoord="z_l"):
+def calc_n2(
+    thetao, so, eos="Wright", gravity=-9.8, patm=101325.0, zcoord="z_l", interfaces=None
+):
     """Function to calculate the buoyancy frequency
 
     This function calculates the Brunt-Väisälä frequency which is commonly used
-    to evaluate stratification.
+    to evaluate stratification. The equivalent field in CMIP is `obvfsq`.
+
+    The buoyancy frequency is calculated independent of the effects of pressure
+    by calculating derivatives from locally referenced potential temperature.
+
+    Note that this field differs from the online calculation of `obvfsq` in that
+    the default behavior is to calculate the buoyancy frequency at the cell
+    centers whereas the model's default behavior is calculate this quantity on
+    the cell edges.
 
     This field can be converted to cycles per hour (CPH) via:
         np.sqrt(n2)*3600.
@@ -246,14 +258,18 @@ def calc_n2(thetao, so, rhozero=1035.0, eos="Wright", gravity=-9.8, zcoord="z_l"
         Sea water potential temperature in units = degC
     so : xarray.core.dataarray.DataArray
         Sea water salinity in units = 0.001
-    rhozero : float, optional
-        Globally constant reference density in kg m-3, by default 1035.0
     eos : str, optional
         Equation of state to use in calculations, by default "Wright"
     gravity : float, optional
         Gravitational acceleration constant in m s-2, by default -9.8
+    patm : float or xarray.core.dataarray.DataArray
+        Atmospheric pressure at the sea surface in Pa,
+        by default 101325 Pa (US Standard Atmosphere)
     zcoord : str, optional
         Vertical coorindate name, by default "z_l"
+    interfaces : xarray.core.dataarray.DataArray, optional
+        Vertical coordinate cell interfaces, by default None
+        If provided, calculation will be performed on cell edges.
 
     Returns
     -------
@@ -262,13 +278,23 @@ def calc_n2(thetao, so, rhozero=1035.0, eos="Wright", gravity=-9.8, zcoord="z_l"
 
     See Also
     --------
-    calc_pdens : Calculates potential density
+    calc_alpha : Calculates thermal expansion coefficient
+    calc_beta : Calculates haline contraction coefficient
     """
 
-    # this field is called `obvfsq` in CMIP
-    rhopot0 = calc_pdens(thetao, so, level=0.0, eos=eos)
-    drho_dz = rhopot0.differentiate(zcoord)
-    n2 = (-gravity / rhozero) * drho_dz
+    if interfaces is not None:
+        _ds = xr.Dataset({"thetao": thetao, "so": so})
+        grid = xgcm.Grid(_ds, coords={"Z": {"center": zcoord}}, periodic=False)
+        thetao = grid.transform(thetao, "Z", interfaces, method="linear")
+        so = grid.transform(so, "Z", interfaces, method="linear")
+        zcoord = interfaces.name
+
+    pres = (thetao[zcoord] * 1.0e4) + patm
+    alpha = calc_alpha(thetao, so, pres, eos=eos)
+    beta = calc_beta(thetao, so, pres, eos=eos)
+    dtdz = thetao.differentiate(zcoord, edge_order=2)
+    dsdz = so.differentiate(zcoord, edge_order=2)
+    n2 = gravity * ((alpha * dtdz) - (beta * dsdz))
     n2.attrs = {
         "standard_name": "square_of_brunt_vaisala_frequency_in_sea_water",
         "long_name": "Square of seawater buoyancy frequency",
