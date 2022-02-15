@@ -5,7 +5,7 @@ dset = generate_test_data()
 
 
 def test_setup_reference_state():
-    result = reference.setup_reference_state(dset, "Wright")
+    result = reference.setup_reference_state(dset, eos="Wright")
     expected_vars = [
         "thetao",
         "so",

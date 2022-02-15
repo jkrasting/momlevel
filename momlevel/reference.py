@@ -12,7 +12,9 @@ from momlevel.util import default_coords
 __all__ = ["setup_reference_state"]
 
 
-def setup_reference_state(dset, eos="Wright", coord_names=None, time_index=0):
+def setup_reference_state(
+    dset, patm=101325.0, eos="Wright", coord_names=None, time_index=0
+):
     """Function to generate reference dataset
 
     This function generates a dataset of initial reference values for
@@ -26,6 +28,9 @@ def setup_reference_state(dset, eos="Wright", coord_names=None, time_index=0):
     ----------
     dset : xarray.core.dataset.Dataset
         Dataset containing thetao, so, volcello, and areacello
+    patm : float or xarray.core.dataarray.DataArray
+        Atmospheric pressure at the sea surface in Pa,
+        by default 101325 Pa (US Standard Atmosphere)
     eos : str, optional
         Equation of state, by default "Wright"
     coord_names : :obj:`dict`, optional
@@ -46,7 +51,7 @@ def setup_reference_state(dset, eos="Wright", coord_names=None, time_index=0):
     zcoord = coords[1]
 
     # approximate pressure from depth coordinate
-    pres = dset[zcoord] * 1.0e4
+    pres = (dset[zcoord] * 1.0e4) + patm
 
     # initialize reference dataset
     reference = xr.Dataset()

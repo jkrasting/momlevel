@@ -23,9 +23,6 @@ C5 = -3.079464
 def density(T, S, p):
     """Calculate in-situ density based on the Wright equation of state.
 
-    This implementation assumes that the standard atmospheric pressure (101325 Pa)
-    has been removed and that zero pressure refers to the ocean surface.
-
     Reference:
       Wright, 1997, J. Atmos. Ocean. Tech., 14, 735-740.
 
@@ -36,7 +33,7 @@ def density(T, S, p):
     S : numpy.ndarray
         Sea water practical salinity in PSU
     p : numpy.ndarray
-        Sea water gauge pressure in Pa
+        Sea water absolute pressure in Pa
 
     Returns
     -------
@@ -66,7 +63,7 @@ def drho_dtemp(T, S, p):
     S : numpy.ndarray
         Sea water practical salinity in PSU
     p : numpy.ndarray
-        Sea water gauge pressure in Pa
+        Sea water absolute pressure in Pa
 
     Returns
     -------
@@ -101,7 +98,7 @@ def drho_dsal(T, S, p):
     S : numpy.ndarray
         Sea water practical salinity in PSU
     p : numpy.ndarray
-        Sea water gauge pressure in Pa
+        Sea water absolute pressure in Pa
 
     Returns
     -------
@@ -135,7 +132,7 @@ def alpha(T, S, p):
     S : numpy.ndarray
         Sea water practical salinity in PSU
     p : numpy.ndarray
-        Sea water gauge pressure in Pa
+        Sea water absolute pressure in Pa
 
     Returns
     -------
@@ -158,7 +155,7 @@ def beta(T, S, p):
     S : numpy.ndarray
         Sea water practical salinity in PSU
     p : numpy.ndarray
-        Sea water gauge pressure in Pa
+        Sea water absolute pressure in Pa
 
     Returns
     -------
