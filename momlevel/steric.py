@@ -20,6 +20,7 @@ def steric(
     coord_names=None,
     varname_map=None,
     rhozero=1035.0,
+    patm=101325.0,
     equation_of_state="Wright",
     variant="steric",
     domain="local",
@@ -54,6 +55,9 @@ def steric(
         mappings at the start of the routine, by default None.
     rhozero : float, optional
         Globally constant reference density in kg m-3, by default 1035.0
+    patm : float or xarray.core.dataarray.DataArray
+        Atmospheric pressure at the sea surface in Pa,
+        by default 101325 Pa (US Standard Atmosphere)
     equation_of_state : str, optional
         Equation of state to use in calculations, by default "Wright"
     variant : str, optional
@@ -87,8 +91,9 @@ def steric(
     validate_dataset(dset, strict=strict, additional_vars=additional_vars)
 
     # approximate pressure from depth coordinate
-    # 1 meter of depth is approximately 1 db or 10**4 Pa
-    pres = dset[zcoord] * 1.0e4
+    # 1 meter of depth is approximately 1 db or 10**4 Pa and also
+    # add in standard atmospheric pressure at the sea surface
+    pres = (dset[zcoord] * 1.0e4) + patm
 
     if reference is not None:
         assert isinstance(
@@ -98,10 +103,10 @@ def steric(
             print("Using supplied reference state")
     else:
         reference = setup_reference_state(
-            dset, equation_of_state, coord_names=coord_names
+            dset, patm=patm, eos=equation_of_state, coord_names=coord_names
         )
         if verbose:
-            print("Generating reference stat from first timestep")
+            print("Generating reference state from first timestep")
 
     # conduct some sanity checks on the reference state
     validate_dataset(reference, reference=True, strict=strict)

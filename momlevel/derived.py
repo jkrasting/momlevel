@@ -32,7 +32,7 @@ def calc_alpha(thetao, so, pres, eos="Wright"):
     so : xarray.core.dataarray.DataArray
         Sea water salinity in units = 0.001
     pres : xarray.core.dataarray.DataArray
-        Pressure, in units of Pa
+        Sea water absolute pressure, in units of Pa
     eos : str
         Equation of state, by default "Wright"
 
@@ -45,7 +45,13 @@ def calc_alpha(thetao, so, pres, eos="Wright"):
     # obtain the function object corresponding to the eos
     eos_func = util.eos_func_from_str(eos, func_name="alpha")
 
-    alpha = xr.apply_ufunc(eos_func, thetao, so, pres, dask="allowed",)
+    alpha = xr.apply_ufunc(
+        eos_func,
+        thetao,
+        so,
+        pres,
+        dask="allowed",
+    )
 
     alpha.attrs = {
         "long_name": "Thermal expansion coefficient",
@@ -70,7 +76,7 @@ def calc_beta(thetao, so, pres, eos="Wright"):
     so : xarray.core.dataarray.DataArray
         Sea water salinity in units = 0.001
     pres : xarray.core.dataarray.DataArray
-        Pressure, in units of Pa
+        Sea water absolute pressure, in units of Pa
     eos : str
         Equation of state, by default "Wright"
 
@@ -83,7 +89,13 @@ def calc_beta(thetao, so, pres, eos="Wright"):
     # obtain the function object corresponding to the eos
     eos_func = util.eos_func_from_str(eos, func_name="beta")
 
-    beta = xr.apply_ufunc(eos_func, thetao, so, pres, dask="allowed",)
+    beta = xr.apply_ufunc(
+        eos_func,
+        thetao,
+        so,
+        pres,
+        dask="allowed",
+    )
 
     beta.attrs = {
         "long_name": "Haline contraction coefficient",
@@ -298,12 +310,12 @@ def calc_masso(rho, volcello, tcoord="time"):
     return masso
 
 
-def calc_pdens(thetao, so, level=0.0, eos="Wright"):
+def calc_pdens(thetao, so, level=0.0, patm=101325, eos="Wright"):
     """Function to calculate potential density
 
     This function calculates potential density referenced to a given
-    depth level (z). By default, this is the surface (i.e. `sigma0`).
-    The pressure associated with z is defined such that p = z * 1.e4.
+    depth level (z). By default, this is the surface. The pressure associated
+    with z is defined such that p = z * 1.e4.
 
     Parameters
     ----------
@@ -313,6 +325,9 @@ def calc_pdens(thetao, so, level=0.0, eos="Wright"):
         Sea water salinity in units = 0.001
     level : float, optional
         Reference depth level in m, by default 0.
+    patm : float or xarray.core.dataarray.DataArray
+        Atmospheric pressure at the sea surface in Pa,
+        by default 101325 Pa (US Standard Atmosphere)
     eos : str, optional
         Equation of state, by default "Wright"
 
@@ -325,7 +340,7 @@ def calc_pdens(thetao, so, level=0.0, eos="Wright"):
     assert 0.0 <= level <= 7500.0, "specified level must be between 0 and 7500 m"
 
     # note: approximate pressure from depth
-    rhopot = calc_rho(thetao, so, level * 1.0e4, eos=eos)
+    rhopot = calc_rho(thetao, so, (level * 1.0e4) + patm, eos=eos)
 
     rhopot.attrs = {
         "standard_name": "sea_water_potential_density",
@@ -402,7 +417,7 @@ def calc_rho(thetao, so, pres, eos="Wright"):
     so : xarray.core.dataarray.DataArray
         Sea water salinity in units = 0.001
     pres : xarray.core.dataarray.DataArray
-        Sea water gauge pressure, in units of Pa
+        Sea water absolute pressure, in units of Pa
     eos : str
         Equation of state, by default "Wright"
 
@@ -415,7 +430,13 @@ def calc_rho(thetao, so, pres, eos="Wright"):
     # obtain the function object corresponding to the eos
     eos_func = util.eos_func_from_str(eos)
 
-    rho = xr.apply_ufunc(eos_func, thetao, so, pres, dask="allowed",)
+    rho = xr.apply_ufunc(
+        eos_func,
+        thetao,
+        so,
+        pres,
+        dask="allowed",
+    )
 
     rho.attrs = {
         "standard_name": "sea_water_density",

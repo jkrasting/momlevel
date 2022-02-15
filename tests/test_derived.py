@@ -36,17 +36,17 @@ def test_calc_rho():
 
 def test_calc_n2():
     obvfsq = derived.calc_n2(dset1.thetao, dset1.so)
-    assert np.allclose(obvfsq.sum(), 0.11035126)
+    assert np.allclose(obvfsq.sum(), 0.11040719)
 
 
 def test_calc_pdens_1():
     rhopot = derived.calc_pdens(dset1.thetao, dset1.so, eos="Wright")
-    assert np.allclose(rhopot.sum(), 641125.11681861)
+    assert np.allclose(rhopot.sum(), 641153.07032298)
 
 
 def test_calc_pdens_2():
     rhopot = derived.calc_pdens(dset1.thetao, dset1.so, level=2000.0, eos="Wright")
-    assert np.allclose(rhopot.sum(), 646520.66361675)
+    assert np.allclose(rhopot.sum(), 646547.38808142)
 
 
 def test_calc_alpha():
@@ -92,4 +92,4 @@ def test_calc_pv():
     pv = derived.calc_pv(zeta, dset3.Coriolis, n2)
     # convert to WOCE conventional units of 10*14 cm-1 s-1
     pv = (pv / 100.0) * 1e14
-    assert np.allclose(pv.sum(), 118579.04794402)
+    assert np.allclose(pv.sum(), 118605.5965454)
