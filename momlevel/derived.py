@@ -7,6 +7,7 @@ from momlevel import util
 
 
 __all__ = [
+    "adjust_negative_n2",
     "calc_alpha",
     "calc_beta",
     "calc_coriolis",
@@ -18,7 +19,52 @@ __all__ = [
     "calc_rho",
     "calc_rhoga",
     "calc_volo",
+    "calc_wave_speed",
 ]
+
+
+def adjust_negative_n2(n2, zcoord="z_l"):
+    """Function to adjust negative values of N^2
+
+    This function removes negative values of the buoyancy frequency
+    based on the methods described in:
+
+    Chelton, D. B., et al. (1998). Geographical Variability of the First
+        Baroclinic Rossby Radius of Deformation, Journal of Physical
+        Oceanography, 28(3), 433-460.
+        https://doi.org/10.1175/1520-0485(1998)028%3C0433:GVOTFB%3E2.0.CO;2
+
+    Parameters
+    ----------
+    n2 : xarray.core.dataarray.DataArray
+       Brunt-Väisälä frequency, or buoyancy frequency, in s-2
+    zcoord : str, optional
+        Vertical coorindate name, by default "z_l"
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+       Adjusted Brunt-Väisälä frequency, or buoyancy frequency, in s-2
+    """
+
+    # save original data mask and attributes
+    mask = xr.where(n2.isnull(), np.nan, 1.0)
+    attrs = n2.attrs
+
+    # mask out negative values of N2
+    adjusted = xr.where(n2 <= 0.0, np.nan, n2)
+
+    # set negative surface values of N^2 to 1.e-8
+    adjusted[0] = adjusted[0].fillna(1.0e-8)
+
+    # forward positive values of N2
+    adjusted = adjusted.ffill(zcoord)
+
+    # reapply mask and attributes from source N2
+    adjusted = adjusted * mask
+    adjusted.attrs = {**attrs, "comment": "adjustment applied for negative values"}
+
+    return adjusted
 
 
 def calc_alpha(thetao, so, pres, eos="Wright"):
@@ -286,12 +332,7 @@ def calc_n2(
         np.sqrt(n2)*3600.
 
     If `adjust_negative` is True, negative values are corrected according to
-    the method described in:
-
-    Chelton, D. B., et al. (1998). Geographical Variability of the First
-        Baroclinic Rossby Radius of Deformation, Journal of Physical
-        Oceanography, 28(3), 433-460.
-        https://doi.org/10.1175/1520-0485(1998)028%3C0433:GVOTFB%3E2.0.CO;2
+    the method described in Chelton et al. 1998.
 
     Parameters
     ----------
@@ -321,6 +362,7 @@ def calc_n2(
 
     See Also
     --------
+    adjust_negative_n2 : Adjustment for negative values of N2
     calc_alpha : Calculates thermal expansion coefficient
     calc_beta : Calculates haline contraction coefficient
     """
@@ -344,21 +386,7 @@ def calc_n2(
         "units": "s-2",
     }
 
-    if adjust_negative:
-        # save original data mask and attributes
-        mask = xr.where(n2.isnull(), np.nan, 1.0)
-        attrs = n2.attrs
-        # mask out negative values of N2
-        adjusted = xr.where(n2 <= 0.0, np.nan, n2)
-        # set negative surface values of N^2 to 1.e-8
-        adjusted[0] = adjusted[0].fillna(1.0e-8)
-        # forward positive values of N2
-        adjusted = adjusted.ffill(zcoord)
-        # reapply mask and attributes from source N2
-        adjusted = adjusted * mask
-        adjusted.attrs = {**attrs, "comment": "adjustment applied for negative values"}
-
-        n2 = adjusted
+    n2 = adjust_negative_n2(n2) if adjust_negative else n2
 
     return n2
 

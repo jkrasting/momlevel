@@ -11,6 +11,12 @@ dset2 = generate_test_data_dz()
 dset3 = generate_test_data_uv()
 
 
+def test_adjust_negative_n2():
+    obvfsq = derived.calc_n2(dset1.thetao, dset1.so)
+    adjusted = derived.adjust_negative_n2(obvfsq)
+    assert np.allclose(adjusted.sum(), 0.50181224)
+
+
 def test_calc_coriolis():
     coriolis = derived.calc_coriolis(dset1.geolat)
     assert np.allclose(coriolis.sum(), 2.71050543e-20)
