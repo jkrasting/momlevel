@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+import xarray as xr
 
 from momlevel import derived
 from momlevel.test_data import generate_test_data
@@ -109,6 +110,16 @@ def test_calc_pv():
     # convert to WOCE conventional units of 10*14 cm-1 s-1
     pv = (pv / 100.0) * 1e14
     assert np.allclose(pv.sum(), 119787.96470602)
+
+
+def test_calc_rossby_rd():
+    n2 = derived.calc_n2(dset1.thetao, dset1.so)
+    dz = derived.calc_dz(dset1.z_l, dset1.z_i, dset1.deptho)
+    wave_speed = derived.calc_wave_speed(n2, dz)
+    coriolis = derived.calc_coriolis(dset1.geolat)
+    rossby_rd = derived.calc_rossby_rd(wave_speed, coriolis)
+    rossby_rd = xr.where(xr.ufuncs.isinf(rossby_rd), np.nan, rossby_rd)
+    assert np.allclose(rossby_rd.sum(), 11779400.69254739)
 
 
 def test_calc_wave_speed():

@@ -18,6 +18,7 @@ __all__ = [
     "calc_rel_vort",
     "calc_rho",
     "calc_rhoga",
+    "calc_rossby_rd",
     "calc_volo",
     "calc_wave_speed",
 ]
@@ -515,6 +516,35 @@ def calc_pv(zeta, coriolis, n2, gravity=9.8, coord_dict=None, symmetric=False):
     }
 
     return swpotvort
+
+
+def calc_rossby_rd(wave_speed, coriolis):
+    """Function to calculate Rossby radius of deformation
+
+    This function calculates the Rossby radius of deformation given
+    the wave speed and coriolis parameter.
+
+    Parameters
+    ----------
+    wave_speed : xarray.core.dataarray.DataArray
+        Ocean gravity wave speed, typically for the first baroclinic mode
+        in units of m s-1
+    coriolis : xarray.core.dataarray.DataArray
+        Coriolis parameter grid cell corners, in units = s-1
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+        Rossby radius of deformation, in units = m
+    """
+
+    radius = wave_speed / np.abs(coriolis)
+    radius.attrs = {
+        "long name": "Rossby radius of deformation",
+        "units": "m",
+    }
+    radius = radius.rename(None)
+    return radius
 
 
 def calc_rho(thetao, so, pres, eos="Wright"):
