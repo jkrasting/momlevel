@@ -260,7 +260,14 @@ def calc_dz(levels, interfaces, depth, fraction=False):
 
 
 def calc_n2(
-    thetao, so, eos="Wright", gravity=-9.8, patm=101325.0, zcoord="z_l", interfaces=None
+    thetao,
+    so,
+    eos="Wright",
+    gravity=-9.8,
+    patm=101325.0,
+    zcoord="z_l",
+    interfaces=None,
+    adjust_negative=False,
 ):
     """Function to calculate the buoyancy frequency
 
@@ -277,6 +284,14 @@ def calc_n2(
 
     This field can be converted to cycles per hour (CPH) via:
         np.sqrt(n2)*3600.
+
+    If `adjust_negative` is True, negative values are corrected according to
+    the method described in:
+
+    Chelton, D. B., et al. (1998). Geographical Variability of the First
+        Baroclinic Rossby Radius of Deformation, Journal of Physical
+        Oceanography, 28(3), 433-460.
+        https://doi.org/10.1175/1520-0485(1998)028%3C0433:GVOTFB%3E2.0.CO;2
 
     Parameters
     ----------
@@ -296,6 +311,8 @@ def calc_n2(
     interfaces : xarray.core.dataarray.DataArray, optional
         Vertical coordinate cell interfaces, by default None
         If provided, calculation will be performed on cell edges.
+    adjust_negative : bool, optional
+        Adjust negative values, by default False
 
     Returns
     -------
@@ -326,6 +343,23 @@ def calc_n2(
         "long_name": "Square of seawater buoyancy frequency",
         "units": "s-2",
     }
+
+    if adjust_negative:
+        # save original data mask and attributes
+        mask = xr.where(n2.isnull(), np.nan, 1.0)
+        attrs = n2.attrs
+        # mask out negative values of N2
+        adjusted = xr.where(n2 <= 0.0, np.nan, n2)
+        # set negative surface values of N^2 to 1.e-8
+        adjusted[0] = adjusted[0].fillna(1.0e-8)
+        # forward positive values of N2
+        adjusted = adjusted.ffill(zcoord)
+        # reapply mask and attributes from source N2
+        adjusted = adjusted * mask
+        adjusted.attrs = {**attrs, "comment": "adjustment applied for negative values"}
+
+        n2 = adjusted
+
     return n2
 
 
