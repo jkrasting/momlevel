@@ -109,3 +109,10 @@ def test_calc_pv():
     # convert to WOCE conventional units of 10*14 cm-1 s-1
     pv = (pv / 100.0) * 1e14
     assert np.allclose(pv.sum(), 119787.96470602)
+
+
+def test_calc_wave_speed():
+    n2 = derived.calc_n2(dset1.thetao, dset1.so)
+    dz = derived.calc_dz(dset1.z_l, dset1.z_i, dset1.deptho)
+    wave_speed = derived.calc_wave_speed(n2, dz)
+    assert np.allclose(wave_speed.sum(), 1423.93496635)

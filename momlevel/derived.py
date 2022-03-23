@@ -616,3 +616,36 @@ def calc_volo(volcello):
         "units": "m3",
     }
     return volo
+
+
+def calc_wave_speed(n2, dz, zcoord="z_l"):
+    """Function to calculate the gravity wave speed of first baroclinic mode
+
+    This function calculates the c1 based on the buoyancy frequency (N^2).
+    N^2 is adjusted to account for negative values.
+
+    Parameters
+    ----------
+    n2 : xarray.core.dataarray.DataArray
+       Brunt-Väisälä frequency, or buoyancy frequency, in s-2
+    dz : xarray.core.dataarray.DataArray
+        3-dimensional dz field accounting for partial bottom cells
+    zcoord : str, optional
+        Vertical coorindate name, by default "z_l"
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+        Ocean gravity wave speed of the first baroclinic mode
+        in units of m s-1
+    """
+
+    result = (np.sqrt(adjust_negative_n2(n2)) * dz).sum(zcoord) / np.pi
+    result = xr.where(n2[0].isnull(), np.nan, result)
+
+    result.attrs = {
+        "long name": "Ocean gravity wave speed of the first baroclinic mode",
+        "units": "m s-1",
+    }
+
+    return result
