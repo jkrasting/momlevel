@@ -7,8 +7,10 @@ from momlevel import util
 
 
 __all__ = [
+    "adjust_negative_n2",
     "calc_alpha",
     "calc_beta",
+    "calc_coriolis",
     "calc_dz",
     "calc_n2",
     "calc_masso",
@@ -16,8 +18,54 @@ __all__ = [
     "calc_rel_vort",
     "calc_rho",
     "calc_rhoga",
+    "calc_rossby_rd",
     "calc_volo",
+    "calc_wave_speed",
 ]
+
+
+def adjust_negative_n2(n2, zcoord="z_l"):
+    """Function to adjust negative values of N^2
+
+    This function removes negative values of the buoyancy frequency
+    based on the methods described in:
+
+    Chelton, D. B., et al. (1998). Geographical Variability of the First
+        Baroclinic Rossby Radius of Deformation, Journal of Physical
+        Oceanography, 28(3), 433-460.
+        https://doi.org/10.1175/1520-0485(1998)028%3C0433:GVOTFB%3E2.0.CO;2
+
+    Parameters
+    ----------
+    n2 : xarray.core.dataarray.DataArray
+       Brunt-Väisälä frequency, or buoyancy frequency, in s-2
+    zcoord : str, optional
+        Vertical coorindate name, by default "z_l"
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+       Adjusted Brunt-Väisälä frequency, or buoyancy frequency, in s-2
+    """
+
+    # save original data mask and attributes
+    mask = xr.where(n2.isnull(), np.nan, 1.0)
+    attrs = n2.attrs
+
+    # mask out negative values of N2
+    adjusted = xr.where(n2 <= 0.0, np.nan, n2)
+
+    # set negative surface values of N^2 to 1.e-8
+    adjusted[0] = adjusted[0].fillna(1.0e-8)
+
+    # forward positive values of N2
+    adjusted = adjusted.ffill(zcoord)
+
+    # reapply mask and attributes from source N2
+    adjusted = adjusted * mask
+    adjusted.attrs = {**attrs, "comment": "adjustment applied for negative values"}
+
+    return adjusted
 
 
 def calc_alpha(thetao, so, pres, eos="Wright"):
@@ -106,6 +154,31 @@ def calc_beta(thetao, so, pres, eos="Wright"):
     }
 
     return beta
+
+
+def calc_coriolis(lat):
+    """Function to calculate the coriolis parameter
+
+    This function calculates the coriolis parameter from an
+    array of latitude values
+
+    Parameters
+    ----------
+    lat : xarray.core.dataarray.DataArray
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+        Coriolis parameter in units of s-1
+    """
+    coriolis = 2.0 * (2.0 * np.pi / (60.0 * 60.0 * 24.0)) * np.sin(lat * np.pi / 180.0)
+    coriolis.attrs = {
+        "standard_name": "coriolis_parameter",
+        "long_name": "Coriolis parameter",
+        "units": "s-1",
+    }
+    coriolis = coriolis.rename(None)
+    return coriolis
 
 
 def calc_rel_vort(dset, varname_map=None, coord_dict=None, symmetric=False):
@@ -234,7 +307,14 @@ def calc_dz(levels, interfaces, depth, fraction=False):
 
 
 def calc_n2(
-    thetao, so, eos="Wright", gravity=-9.8, patm=101325.0, zcoord="z_l", interfaces=None
+    thetao,
+    so,
+    eos="Wright",
+    gravity=-9.8,
+    patm=101325.0,
+    zcoord="z_l",
+    interfaces=None,
+    adjust_negative=False,
 ):
     """Function to calculate the buoyancy frequency
 
@@ -251,6 +331,9 @@ def calc_n2(
 
     This field can be converted to cycles per hour (CPH) via:
         np.sqrt(n2)*3600.
+
+    If `adjust_negative` is True, negative values are corrected according to
+    the method described in Chelton et al. 1998.
 
     Parameters
     ----------
@@ -270,6 +353,8 @@ def calc_n2(
     interfaces : xarray.core.dataarray.DataArray, optional
         Vertical coordinate cell interfaces, by default None
         If provided, calculation will be performed on cell edges.
+    adjust_negative : bool, optional
+        Adjust negative values, by default False
 
     Returns
     -------
@@ -278,6 +363,7 @@ def calc_n2(
 
     See Also
     --------
+    adjust_negative_n2 : Adjustment for negative values of N2
     calc_alpha : Calculates thermal expansion coefficient
     calc_beta : Calculates haline contraction coefficient
     """
@@ -300,6 +386,9 @@ def calc_n2(
         "long_name": "Square of seawater buoyancy frequency",
         "units": "s-2",
     }
+
+    n2 = adjust_negative_n2(n2) if adjust_negative else n2
+
     return n2
 
 
@@ -429,6 +518,35 @@ def calc_pv(zeta, coriolis, n2, gravity=9.8, coord_dict=None, symmetric=False):
     return swpotvort
 
 
+def calc_rossby_rd(wave_speed, coriolis):
+    """Function to calculate Rossby radius of deformation
+
+    This function calculates the Rossby radius of deformation given
+    the wave speed and coriolis parameter.
+
+    Parameters
+    ----------
+    wave_speed : xarray.core.dataarray.DataArray
+        Ocean gravity wave speed, typically for the first baroclinic mode
+        in units of m s-1
+    coriolis : xarray.core.dataarray.DataArray
+        Coriolis parameter grid cell corners, in units = s-1
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+        Rossby radius of deformation, in units = m
+    """
+
+    radius = wave_speed / np.abs(coriolis)
+    radius.attrs = {
+        "long name": "Rossby radius of deformation",
+        "units": "m",
+    }
+    radius = radius.rename(None)
+    return radius
+
+
 def calc_rho(thetao, so, pres, eos="Wright"):
     """Function to calculate in situ density
 
@@ -528,3 +646,36 @@ def calc_volo(volcello):
         "units": "m3",
     }
     return volo
+
+
+def calc_wave_speed(n2, dz, zcoord="z_l"):
+    """Function to calculate the gravity wave speed of first baroclinic mode
+
+    This function calculates the c1 based on the buoyancy frequency (N^2).
+    N^2 is adjusted to account for negative values.
+
+    Parameters
+    ----------
+    n2 : xarray.core.dataarray.DataArray
+       Brunt-Väisälä frequency, or buoyancy frequency, in s-2
+    dz : xarray.core.dataarray.DataArray
+        3-dimensional dz field accounting for partial bottom cells
+    zcoord : str, optional
+        Vertical coorindate name, by default "z_l"
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+        Ocean gravity wave speed of the first baroclinic mode
+        in units of m s-1
+    """
+
+    result = (np.sqrt(adjust_negative_n2(n2)) * dz).sum(zcoord) / np.pi
+    result = xr.where(n2[0].isnull(), np.nan, result)
+
+    result.attrs = {
+        "long name": "Ocean gravity wave speed of the first baroclinic mode",
+        "units": "m s-1",
+    }
+
+    return result

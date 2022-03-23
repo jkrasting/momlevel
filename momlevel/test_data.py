@@ -60,6 +60,17 @@ def generate_test_data(start_year=1981, nyears=0, calendar="noleap", seed=123):
     dset["xh"] = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims="xh")
     dset["yh"] = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims="yh")
 
+    # geolon / geolat as cell centers
+    lon = np.arange(0.0, 361.0, 72.0)
+    lat = np.arange(-90.0, 91.0, 36.0)
+
+    lon = [(lon[x] + lon[x + 1]) / 2.0 for x in range(0, len(lon) - 1)]
+    lat = [(lat[x] + lat[x + 1]) / 2.0 for x in range(0, len(lat) - 1)]
+    geolon, geolat = np.meshgrid(lon, lat)
+
+    dset["geolon"] = xr.DataArray(geolon, dims=("yh", "xh"))
+    dset["geolat"] = xr.DataArray(geolat, dims=("yh", "xh"))
+
     dset["thetao"] = xr.DataArray(
         np.random.normal(15.0, 5.0, (ntimes, 5, 5, 5)),
         dims=({"time": dset.time, "z_l": dset.z_l, "yh": dset.yh, "xh": dset.xh}),

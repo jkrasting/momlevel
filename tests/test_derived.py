@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+import xarray as xr
 
 from momlevel import derived
 from momlevel.test_data import generate_test_data
@@ -9,6 +10,17 @@ from momlevel.test_data import generate_test_data_uv
 dset1 = generate_test_data()
 dset2 = generate_test_data_dz()
 dset3 = generate_test_data_uv()
+
+
+def test_adjust_negative_n2():
+    obvfsq = derived.calc_n2(dset1.thetao, dset1.so)
+    adjusted = derived.adjust_negative_n2(obvfsq)
+    assert np.allclose(adjusted.sum(), 0.50181224)
+
+
+def test_calc_coriolis():
+    coriolis = derived.calc_coriolis(dset1.geolat)
+    assert np.allclose(coriolis.sum(), 2.71050543e-20)
 
 
 def test_calc_dz_1():
@@ -34,9 +46,14 @@ def test_calc_rho():
     assert np.allclose(rho.sum(), 643847.01494266)
 
 
-def test_calc_n2():
+def test_calc_n2_1():
     obvfsq = derived.calc_n2(dset1.thetao, dset1.so)
     assert np.allclose(obvfsq.sum(), 0.11750034)
+
+
+def test_calc_n2_2():
+    obvfsq = derived.calc_n2(dset1.thetao, dset1.so, adjust_negative=True)
+    assert np.allclose(obvfsq.sum(), 0.50181224)
 
 
 def test_calc_pdens_1():
@@ -93,3 +110,20 @@ def test_calc_pv():
     # convert to WOCE conventional units of 10*14 cm-1 s-1
     pv = (pv / 100.0) * 1e14
     assert np.allclose(pv.sum(), 119787.96470602)
+
+
+def test_calc_rossby_rd():
+    n2 = derived.calc_n2(dset1.thetao, dset1.so)
+    dz = derived.calc_dz(dset1.z_l, dset1.z_i, dset1.deptho)
+    wave_speed = derived.calc_wave_speed(n2, dz)
+    coriolis = derived.calc_coriolis(dset1.geolat)
+    rossby_rd = derived.calc_rossby_rd(wave_speed, coriolis)
+    rossby_rd = xr.where(xr.ufuncs.isinf(rossby_rd), np.nan, rossby_rd)
+    assert np.allclose(rossby_rd.sum(), 11779400.69254739)
+
+
+def test_calc_wave_speed():
+    n2 = derived.calc_n2(dset1.thetao, dset1.so)
+    dz = derived.calc_dz(dset1.z_l, dset1.z_i, dset1.deptho)
+    wave_speed = derived.calc_wave_speed(n2, dz)
+    assert np.allclose(wave_speed.sum(), 1423.93496635)
