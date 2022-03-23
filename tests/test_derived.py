@@ -11,6 +11,11 @@ dset2 = generate_test_data_dz()
 dset3 = generate_test_data_uv()
 
 
+def test_calc_coriolis():
+    coriolis = derived.calc_coriolis(dset1.geolat)
+    assert np.allclose(coriolis.sum(), 2.71050543e-20)
+
+
 def test_calc_dz_1():
     dz = derived.calc_dz(dset2.z_l, dset2.z_i, dset2.deptho)
     assert np.allclose(dz.sum(), 1261.33383326)

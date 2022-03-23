@@ -9,6 +9,7 @@ from momlevel import util
 __all__ = [
     "calc_alpha",
     "calc_beta",
+    "calc_coriolis",
     "calc_dz",
     "calc_n2",
     "calc_masso",
@@ -106,6 +107,31 @@ def calc_beta(thetao, so, pres, eos="Wright"):
     }
 
     return beta
+
+
+def calc_coriolis(lat):
+    """Function to calculate the coriolis parameter
+
+    This function calculates the coriolis parameter from an
+    array of latitude values
+
+    Parameters
+    ----------
+    lat : xarray.core.dataarray.DataArray
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+        Coriolis parameter in units of s-1
+    """
+    coriolis = 2.0 * (2.0 * np.pi / (60.0 * 60.0 * 24.0)) * np.sin(lat * np.pi / 180.0)
+    coriolis.attrs = {
+        "standard_name": "coriolis_parameter",
+        "long_name": "Coriolis parameter",
+        "units": "s-1",
+    }
+    coriolis = coriolis.rename(None)
+    return coriolis
 
 
 def calc_rel_vort(dset, varname_map=None, coord_dict=None, symmetric=False):
