@@ -170,14 +170,13 @@ def get_xgcm_grid(dset, coord_dict=None, symmetric=False):
         }
 
     if symmetric:
-        print("Doing symmetric")
         result = xgcm.Grid(
             dset,
             coords={
                 "X": {"center": coord_dict["xcenter"], "outer": coord_dict["xcorner"]},
                 "Y": {"center": coord_dict["ycenter"], "outer": coord_dict["ycorner"]},
             },
-            periodic=["X"],
+            boundary=None,
         )
     else:
         result = xgcm.Grid(
@@ -186,7 +185,7 @@ def get_xgcm_grid(dset, coord_dict=None, symmetric=False):
                 "X": {"center": coord_dict["xcenter"], "right": coord_dict["xcorner"]},
                 "Y": {"center": coord_dict["ycenter"], "right": coord_dict["ycorner"]},
             },
-            periodic=["X"],
+            boundary=None,
         )
 
     return result

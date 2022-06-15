@@ -109,7 +109,7 @@ def test_calc_pv():
     pv = derived.calc_pv(zeta, dset3.Coriolis, n2)
     # convert to WOCE conventional units of 10*14 cm-1 s-1
     pv = (pv / 100.0) * 1e14
-    assert np.allclose(pv.sum(), 119787.96470602)
+    assert np.allclose(pv.sum(), 100501.23796741)
 
 
 def test_calc_rossby_rd():
