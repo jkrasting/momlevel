@@ -114,6 +114,18 @@ def test_annual_average_2():
     assert np.allclose(result["var_b"], 12605.18695941)
 
 
+def test_annual_average_3():
+    """tests annual average of a noleap calendar data array"""
+    result = util.annual_average(dset3["var_a"]).sum()
+    assert np.allclose(result, 12484.37032342)
+
+
+def test_annual_average_4():
+    """tests annual average of a julian calendar dataset"""
+    result = util.annual_average(dset4["var_a"]).sum()
+    assert np.allclose(result, 12484.17097863)
+
+
 def test_get_xgcm_grid_1():
     """tests xgcm grid construction for non-symmetric input"""
     result = util.get_xgcm_grid(dset5)

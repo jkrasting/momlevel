@@ -16,18 +16,18 @@ __all__ = [
 ]
 
 
-def annual_average(dset, tcoord="time"):
+def annual_average(xobj, tcoord="time"):
     """Function to calculate annual averages
 
-    This function calculates the annual average of every variable contained
-    in the supplied xarray Dataset. The average is weighted by the number of
-    days in the month, as inferred from the calendar attributes of the time
-    coordinate objects. Non-numeric variables are skipped.
+    This function calculates the annual average of the supplied xarray object.
+    The average is weighted by the number of days in the month, as inferred
+    from the calendar attributes of the time coordinate objects. Non-numeric
+    variables are skipped.
 
     Parameters
     ----------
-    dset : xarray.core.dataset.Dataset
-        Input dataset
+    xobj : xarray.core.dataset.Dataset or xarray.core.dataarray.DataArray
+        Input xarray object
     tcoord : str, optional
         Name of time coordinate, by default "time"
 
@@ -35,17 +35,20 @@ def annual_average(dset, tcoord="time"):
     -------
     xarray.core.dataset.Dataset
     """
-    calendar = dset[tcoord].values[0].calendar
+    calendar = xobj[tcoord].values[0].calendar
 
-    dim_coords = set(dset.dims).union(set(dset.coords))
-    variables = set(dset.variables) - dim_coords
+    dim_coords = set(xobj.dims).union(set(xobj.coords))
 
-    _dset = xr.Dataset()
-    for var in variables:
-        if dset[var].dtype not in ["object", "timedelta64[ns]"]:
-            _dset[var] = dset[var]
+    if isinstance(xobj, xr.core.dataset.Dataset):
+        variables = set(xobj.variables) - dim_coords
+        _xobj = xr.Dataset()
+        for var in variables:
+            if xobj[var].dtype not in ["object", "timedelta64[ns]"]:
+                _xobj[var] = xobj[var]
+    else:
+        _xobj = xobj
 
-    groups = _dset.groupby(f"{tcoord}.year")
+    groups = _xobj.groupby(f"{tcoord}.year")
 
     _annuals = []
     for grp in sorted(dict(groups).keys()):
@@ -71,10 +74,11 @@ def annual_average(dset, tcoord="time"):
 
     result = result.assign_coords({"time": new_time_axis})
 
-    for var in list(result.variables):
-        result[var].attrs = dset[var].attrs if var in list(dset.variables) else {}
+    if isinstance(xobj, xr.core.dataset.Dataset):
+        for var in list(result.variables):
+            result[var].attrs = xobj[var].attrs if var in list(xobj.variables) else {}
 
-    result.attrs = dset.attrs
+    result.attrs = xobj.attrs
 
     return result
 
