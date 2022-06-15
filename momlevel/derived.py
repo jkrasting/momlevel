@@ -370,7 +370,7 @@ def calc_n2(
 
     if interfaces is not None:
         _ds = xr.Dataset({"thetao": thetao, "so": so})
-        grid = xgcm.Grid(_ds, coords={"Z": {"center": zcoord}}, periodic=False)
+        grid = xgcm.Grid(_ds, coords={"Z": {"center": zcoord}})
         thetao = grid.transform(thetao, "Z", interfaces, method="linear")
         so = grid.transform(so, "Z", interfaces, method="linear")
         zcoord = interfaces.name
