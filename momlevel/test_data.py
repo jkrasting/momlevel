@@ -174,6 +174,7 @@ def generate_test_data_time(start_year=1981, nyears=5, calendar="noleap", seed=1
         np.random.normal(100, 20, (60, 5, 5)),
         dims=(("time", "lat", "lon")),
         coords={"time": dset.time, "lat": lat, "lon": lon},
+        attrs={"first_attribute": "foo", "second_attribute": "bar"},
     )
 
     np.random.seed(seed * 2)
@@ -181,6 +182,7 @@ def generate_test_data_time(start_year=1981, nyears=5, calendar="noleap", seed=1
         np.random.normal(100, 20, (60, 5, 5)),
         dims=(("time", "lat", "lon")),
         coords={"time": dset.time, "lat": lat, "lon": lon},
+        attrs={"first_attribute": "foo", "second_attribute": "bar"},
     )
 
     return dset
@@ -245,8 +247,14 @@ def generate_test_data_uv(start_year=1981, nyears=0, calendar="noleap", seed=123
         np.random.normal(0.00077, 0.04, (ntimes, 5, 5, 5)),
         dims=({"time": dset.time, "z_l": dset.z_l, "yq": dset.yq, "xh": dset.xh}),
     )
-    dset["dxCu"] = xr.DataArray(np.ones((5, 5)), dims=({"yh": dset.yh, "xq": dset.xq}),)
-    dset["dyCv"] = xr.DataArray(np.ones((5, 5)), dims=({"yq": dset.yq, "xh": dset.xh}),)
+    dset["dxCu"] = xr.DataArray(
+        np.ones((5, 5)),
+        dims=({"yh": dset.yh, "xq": dset.xq}),
+    )
+    dset["dyCv"] = xr.DataArray(
+        np.ones((5, 5)),
+        dims=({"yq": dset.yq, "xh": dset.xh}),
+    )
     dset["Coriolis"] = xr.DataArray(
         np.random.normal(1.21e-5, 0.00011, (5, 5)),
         dims=({"yq": dset.yq, "xq": dset.xq}),
