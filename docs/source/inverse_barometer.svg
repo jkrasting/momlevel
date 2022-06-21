@@ -3,19 +3,19 @@
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 531.54 267.11" style="enable-background:new 0 0 531.54 267.11;" xml:space="preserve">
 <style type="text/css">
-	.st0{fill:#FFFFFF;stroke:#000000;stroke-width:0.75;stroke-miterlimit:10;}
-	.st1{fill:#FFFFFF;}
-	.st2{fill:none;stroke:#000000;stroke-width:0.75;stroke-miterlimit:10;}
-	.st3{fill:none;stroke:#000000;stroke-width:0.75;stroke-miterlimit:10;stroke-dasharray:8.0167,8.0167;}
-	.st4{fill:none;stroke:#000000;stroke-miterlimit:10;}
-	.st5{font-family:'MyriadPro-Regular';}
-	.st6{font-size:12px;}
-	.st7{font-family:'MyriadPro-It';}
-	.st8{font-size:14px;}
-	.st9{fill:#BE1E2D;stroke:#000000;stroke-miterlimit:10;}
-	.st10{font-family:'MyriadPro-Bold';}
-	.st11{font-size:48px;}
-	.st12{fill:#2E3192;stroke:#000000;stroke-miterlimit:10;}
+	.st0{fill:none;stroke:#000000;stroke-width:0.75;stroke-miterlimit:10;}
+	.st1{fill:none;}
+	.st2{fill:none;stroke:#000000;stroke-width:0.75;stroke-miterlimit:10;stroke-dasharray:8.0167,8.0167;}
+	.st3{fill:none;stroke:#000000;stroke-miterlimit:10;}
+	.st4{font-family:'MyriadPro-Regular';}
+	.st5{font-size:12px;}
+	.st6{font-family:'MyriadPro-It';}
+	.st7{font-size:14px;}
+	.st8{fill:#BE1E2D;}
+	.st9{font-family:'MyriadPro-Bold';}
+	.st10{font-size:48px;}
+	.st11{fill:#2E3192;}
+	.st12{fill:none;stroke:#000000;stroke-width:0.5;stroke-miterlimit:10;}
 </style>
 <font horiz-adv-x="1000">
 <!-- Copyright 1992, 1994, 1997, 2000, 2004 Adobe Systems Incorporated. All rights reserved. Myriad is either a registered trademark or a trademark of Adobe Systems Incorporated in the United States and/or other countries. -->
@@ -2550,26 +2550,36 @@
 <g>
 	<line class="st1" x1="36.91" y1="150.34" x2="469.8" y2="150.34"/>
 	<g>
-		<line class="st2" x1="36.91" y1="150.34" x2="40.91" y2="150.34"/>
-		<line class="st3" x1="48.93" y1="150.34" x2="461.79" y2="150.34"/>
-		<line class="st2" x1="465.8" y1="150.34" x2="469.8" y2="150.34"/>
+		<line class="st0" x1="36.91" y1="150.34" x2="40.91" y2="150.34"/>
+		<line class="st2" x1="48.93" y1="150.34" x2="461.79" y2="150.34"/>
+		<line class="st0" x1="465.8" y1="150.34" x2="469.8" y2="150.34"/>
 	</g>
 </g>
-<path class="st4" d="M39.6,158.27c0,0,71.82,26.77,214.1-14.07s218.79,14.07,218.79,14.07"/>
-<text transform="matrix(1 0 0 1 484.9111 153.4212)" class="st5 st6">z = 0</text>
-<text transform="matrix(1 0 0 1 64.3494 179.7475)" class="st7 st8">η</text>
-<text transform="matrix(1 0 0 1 347.7621 83.1112)" class="st9 st10 st11">L</text>
-<text transform="matrix(1 0 0 1 132.4402 80.4269)" class="st12 st10 st11">H</text>
+<path class="st3" d="M39.6,158.27c0,0,71.82,26.77,214.1-14.07s218.79,14.07,218.79,14.07"/>
+<text transform="matrix(1 0 0 1 484.9111 153.4212)" class="st4 st5">z = 0</text>
+<text transform="matrix(1 0 0 1 101.1425 195.5501)" class="st6 st7">η</text>
+<text transform="matrix(1 0 0 1 347.7621 83.1112)" class="st8 st9 st10">L</text>
+<text transform="matrix(1 0 0 1 347.7621 83.1112)" class="st3 st9 st10">L</text>
+<text transform="matrix(1 0 0 1 132.4402 80.4269)" class="st11 st9 st10">H</text>
+<text transform="matrix(1 0 0 1 132.4402 80.4269)" class="st3 st9 st10">H</text>
 <g>
 	<g>
-		<line class="st4" x1="253.36" y1="160.68" x2="253.36" y2="211.8"/>
+		<line class="st3" x1="355.64" y1="137.92" x2="355.64" y2="214.36"/>
 		<g>
-			<polygon points="250.36,161.56 253.36,156.38 256.35,161.56 			"/>
+			<polygon points="352.64,139.24 355.64,131.49 358.63,139.24 			"/>
 		</g>
 		<g>
-			<polygon points="250.36,210.93 253.36,216.11 256.35,210.93 			"/>
+			<polygon points="352.64,213.05 355.64,220.8 358.63,213.05 			"/>
 		</g>
 	</g>
 </g>
-<text transform="matrix(1 0 0 1 277.999 186.2415)" class="st7 st8">ρ (θ, S, p)</text>
+<text transform="matrix(1 0 0 1 364.724 184.6061)" class="st6 st7">ρ (θ, S, p)</text>
+<g>
+	<g>
+		<path class="st12" d="M114.07,187.38c12.79-7.72,21-12.63,24.22-14.54"/>
+		<g>
+			<polygon points="138.62,174.1 139.83,171.92 137.34,171.96 			"/>
+		</g>
+	</g>
+</g>
 </svg>
