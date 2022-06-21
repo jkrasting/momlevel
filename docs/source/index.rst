@@ -17,6 +17,7 @@ level-related fields with MOM6 output.
    objective
    eos
    steric
+   inverse_barometer
 
 ..   install
 ..   virtualenv

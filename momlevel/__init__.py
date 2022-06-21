@@ -8,6 +8,8 @@ from . import reference
 from . import test_data
 from . import util
 
+from .dynamic import inverse_barometer
+
 from .steric import (
     halosteric,
     steric,
