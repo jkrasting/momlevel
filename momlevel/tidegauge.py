@@ -12,6 +12,14 @@ from momlevel.util import validate_tidegauge_data
 __all__ = ["extract_tidegauge"]
 
 
+def extract_point(arr, row):
+    return xr.DataArray(
+        arr.sel(**dict(zip(row["dims"], row["model_coords"]))),
+        name=row["name"],
+        attrs={**arr.attrs, **dict(row)},
+    ).reset_coords(drop=True)
+
+
 def extract_tidegauge(
     arr, xcoord="geolon", ycoord="geolat", df_loc=None, mask=None, threshold=None
 ):
@@ -32,6 +40,11 @@ def extract_tidegauge(
     if len(_xcoord.shape) == 1:
         _xcoord, _ycoord = tile_nominal_coords(_xcoord, _ycoord)
 
+    # Check that dimensions are the same for x/y coords
+    _xdims = tuple(_xcoord.dims)
+    _ydims = tuple(_xcoord.dims)
+    assert _xdims == _ydims
+
     # Make sure mask does not have missing values
     mask = mask.fillna(0.0) if mask is not None else xr.ones_like(_xcoord)
     if mask.name != "mask":
@@ -48,15 +61,24 @@ def extract_tidegauge(
     )
 
     # Get pd.DataFrame of target locations. This DataFrame must contain columns
-    # named `lat` and `lon`
-    df_loc = (
-        pd.read_csv(pkgr.resource_filename("momlevel", "resources/us_tide_gauges.csv"))
-        if df_loc is None
-        else df_loc
-    )
+    # named `name`, `lat`, and `lon`
+    if df_loc is None:
+        df_loc = pd.read_csv(
+            pkgr.resource_filename("momlevel", "resources/us_tide_gauges.csv")
+        )
+        df_loc = df_loc.rename(columns={"PSMSL_site": "name"})
 
+    # Call the geolocate function
     df_mapped = geolocate_points(
         df, df_loc, threshold=threshold, model_coords=(_ycoord.name, _xcoord.name)
     )
 
-    return df_mapped
+    # Add dim names back into data frame
+    df_mapped["dims"] = [_xdims] * len(df_mapped)
+
+    # Subset the original array for each valid location
+    results = xr.Dataset(
+        {row["name"]: extract_point(arr, row) for index, row in df_mapped.iterrows()}
+    )
+
+    return results

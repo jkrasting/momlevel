@@ -175,15 +175,17 @@ def geolocate_points(
     df2["distance"], df2["mod_index"] = ball.query(df2[["yrad", "xrad"]].values, k=1)
     df2["distance"] = df2["distance"] * rad_earth
 
-    # Clean up radian versions of coords
-    df2 = df2.drop(["yrad", "xrad"], axis=1)
-
     # Filter by distance if requested
     df2 = df2[df2["distance"] <= threshold] if threshold is not None else df2
 
     # Add model coordinates to the location dataframe
     df1 = df1.iloc[df2["mod_index"].values]
-    df2["coords"] = list(zip(df1[ycoord1].values, df1[xcoord1].values))
+    df2["model_coords"] = list(zip(df1[ycoord1].values, df1[xcoord1].values))
+    df2["dim_vals"] = list(df1.index)
+
+    # Clean up coordinates
+    df2["real_coords"] = list(zip(df2["lat"].values, df2["lon"].values))
+    df2 = df2.drop(["yrad", "xrad", "lat", "lon"], axis=1)
 
     return df2
 
