@@ -1,18 +1,23 @@
 """ util.py - generic utilities for momlevel """
 
 import warnings
+
+import pandas as pd
 import xgcm
 import numpy as np
 import xarray as xr
 from momlevel import eos
-
+from sklearn.neighbors import BallTree
 
 __all__ = [
     "annual_average",
     "default_coords",
     "get_xgcm_grid",
+    "geolocate_points",
+    "tile_nominal_coords",
     "validate_areacello",
     "validate_dataset",
+    "validate_tidegauge_data",
 ]
 
 
@@ -136,6 +141,53 @@ def eos_func_from_str(eos_str, func_name="density"):
     return eos.__dict__[eos_str].__dict__[func_name]
 
 
+def geolocate_points(
+    df_model,
+    df_locs,
+    threshold=None,
+    model_coords=("geolat", "geolon"),
+    rad_earth=6.378e03,
+    loc_coords=("lat", "lon"),
+    apply_mask=True,
+):
+
+    # Expand coords from kwargs
+    ycoord1, xcoord1 = model_coords
+    ycoord2, xcoord2 = loc_coords
+
+    # Make copies of dataframes to avoid overwriting
+    df1 = df_model.copy()
+    df2 = df_locs.copy()
+
+    if apply_mask:
+        df1 = df1[df1["mask"] == 1.0] if "mask" in df1.columns else df1
+
+    # Convert degree coords to radians
+    df1["xrad"] = np.deg2rad(df1[xcoord1])
+    df1["yrad"] = np.deg2rad(df1[ycoord1])
+    df2["xrad"] = np.deg2rad(df2[xcoord2])
+    df2["yrad"] = np.deg2rad(df2[ycoord2])
+
+    # Construct the ball tree using the haversine distance metric
+    ball = BallTree(df1[["yrad", "xrad"]].values, metric="haversine")
+
+    # Locate the nearest model point for each location; convert to km
+    df2["distance"], df2["mod_index"] = ball.query(df2[["yrad", "xrad"]].values, k=1)
+    df2["distance"] = df2["distance"] * rad_earth
+
+    # Clean up radian versions of coords
+    df2 = df2.drop(["yrad", "xrad"], axis=1)
+
+    # Filter by distance if requested
+    df2 = df2[df2["distance"] <= threshold] if threshold is not None else df2
+
+    # Add model coordinates to the location dataframe
+    df1 = df1.iloc[df2["mod_index"].values]
+    df2["coords"] = list(zip(df1[ycoord1].values, df1[xcoord1].values))
+
+    return df2
+
+
 def get_xgcm_grid(dset, coord_dict=None, symmetric=False):
     """Function to generate xgcm grid
 
@@ -189,6 +241,34 @@ def get_xgcm_grid(dset, coord_dict=None, symmetric=False):
         )
 
     return result
+
+
+def tile_nominal_coords(xcoord, ycoord, warn=True):
+    assert isinstance(xcoord, xr.DataArray), "xcoord must be xarray.DataArray"
+    assert isinstance(ycoord, xr.DataArray), "ycoord must be xarray.DataArray"
+
+    if warn:
+        warnings.warn(
+            "Constructing coordinates from 1-D vectors. "
+            + "Make sure this is the intended behavior. "
+            + "Do not use `xh`/`yh` when `geolon`/`geolat` are available"
+        )
+
+    xgrp, ygrp = np.meshgrid(xcoord, ycoord)
+    _xcoord = xr.DataArray(
+        xgrp,
+        dims=(ycoord.name, xcoord.name),
+        coords={ycoord.name: ycoord, xcoord.name: xcoord},
+        name="geolon",
+    )
+    _ycoord = xr.DataArray(
+        ygrp,
+        dims=(ycoord.name, xcoord.name),
+        coords={ycoord.name: ycoord, xcoord.name: xcoord},
+        name="geolat",
+    )
+
+    return _xcoord, _ycoord
 
 
 def validate_areacello(areacello, reference=3.6111092e14, tolerance=0.02):
@@ -337,3 +417,31 @@ def validate_dataset(dset, reference=False, strict=True, additional_vars=None):
         for e in exceptions:
             print(e)
         raise ValueError("Errors found in dataset.")
+
+
+def validate_tidegauge_data(arr, xcoord, ycoord, mask):
+    # confirm that input is xarray
+    assert isinstance(
+        arr, xr.DataArray
+    ), "Input array must be `xarray.DataArray` instance"
+
+    # if xcoord and ycoord are strings, check that coordinates
+    # exist in the xarray object.
+    _coords = list(arr.coords)
+
+    if isinstance(xcoord, str):
+        assert xcoord in _coords, f"`{xcoord}` not found in input array."
+    else:
+        assert isinstance(
+            xcoord, xr.DataArray
+        ), "xcoord must either be a DataArray object or a string that references an existing coordinate"
+
+    if isinstance(ycoord, str):
+        assert ycoord in _coords, f"`{ycoord}` not found in input array."
+    else:
+        assert isinstance(
+            ycoord, xr.DataArray
+        ), "ycoord must either be a DataArray object or a string that references an existing coordinate"
+
+    if mask is not None:
+        assert isinstance(mask, xr.DataArray), "mask be a DataArray object"

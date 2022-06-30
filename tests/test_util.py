@@ -140,3 +140,52 @@ def test_get_xgcm_grid_2():
     answer = dict({"center": "outer", "outer": "center"})
     assert result.__dict__["axes"]["X"].__dict__["_default_shifts"] == answer
     assert result.__dict__["axes"]["Y"].__dict__["_default_shifts"] == answer
+
+
+def test_validate_tidegauge_data_1():
+    """tests that input datasets to the tide gauge routines are valid"""
+    util.validate_tidegauge_data(dset.thetao, "xh", "yh", None)
+
+
+def test_validate_tidegauge_data_2():
+    """tests that input datasets to the tide gauge routines are valid"""
+    with pytest.raises(Exception):
+        util.validate_tidegauge_data(dset, "xh", "yh", None)
+
+
+def test_validate_tidegauge_data_3():
+    """tests that input datasets to the tide gauge routines are valid"""
+    with pytest.raises(Exception):
+        util.validate_tidegauge_data(dset.thetao, "geolon", "geolat", None)
+
+
+def test_validate_tidegauge_data_4():
+    """tests that input datasets to the tide gauge routines are valid"""
+    util.validate_tidegauge_data(dset.thetao, dset.geolon, dset.geolat, None)
+
+
+def test_validate_tidegauge_data_5():
+    """tests that input datasets to the tide gauge routines are valid"""
+    with pytest.raises(Exception):
+        util.validate_tidegauge_data(
+            dset.thetao, dset.geolon, np.array(dset.geolat), None
+        )
+
+
+def test_validate_tidegauge_data_6():
+    """tests that input datasets to the tide gauge routines are valid"""
+    util.validate_tidegauge_data(
+        dset.thetao, dset.geolon, dset.geolat, dset.areacello * 0.0
+    )
+
+
+def test_validate_tidegauge_data_7():
+    """tests that input datasets to the tide gauge routines are valid"""
+    with pytest.raises(Exception):
+        util.validate_tidegauge_data(dset.thetao, dset.geolon, dset.geolat, "wet")
+
+
+def test_tile_nominal_coords():
+    result1, result2 = util.tile_nominal_coords(dset.xh, dset.yh)
+    assert result1.sum().values == result2.sum().values
+    assert np.allclose(result1.sum(), 75.0)
