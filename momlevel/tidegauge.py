@@ -30,7 +30,7 @@ def extract_point(arr, row):
     xarray.core.dataarray.DataArray
     """
     return xr.DataArray(
-        arr.sel(**dict(zip(row["dims"], row["model_coords"]))),
+        arr.sel(**dict(zip(row["dims"], row["dim_vals"]))),
         name=row["name"],
         attrs={**arr.attrs, **dict(row)},
     ).reset_coords(drop=True)
