@@ -8,5 +8,6 @@ dependencies:
   - numpy>=1.21.0
   - pip
   - pytest
+  - scikit-learn>=1.0.1
   - xarray>=0.20.0
   - xgcm
