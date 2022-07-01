@@ -148,6 +148,55 @@ def geolocate_points(
     loc_coords=("lat", "lon"),
     apply_mask=True,
 ):
+    """Function to map a set of real-world locations to model grid points
+
+    This function compares two Pandas DataFrame objects to map a set of
+    real-world locations to their nearest model grid points. The function
+    generates a ball tree for computational efficiency and uses a
+    haversine, or great-circle, distance metric. An optional distance
+    threshold may be specified to filter out locations that are too far
+    away from a model grid point.
+
+    Parameters
+    ----------
+    df_model : pandas.core.frame.DataFrame
+        DataFrame containing all model grid points
+    df_locs : pandas.core.frame.DataFrame
+        DataFrame containing real-world locations to map to model grid
+    threshold : float, optional
+        Filter out points that exceed this distance threshold in km,
+        by default None
+    model_coords : Tuple[str, str], optional
+        Names of DataFrame columns corresponding to the columns that
+        identify the model's latitude and longitude values,
+        by default ("geolat","geolon")
+    rad_earth : float, optional
+        Radius of the earth, by default 6.378e03 km
+    loc_coords : Tuple[str, str]
+        Names of DataFrame columns corresponding to the columns that
+        identify the real-world latitude and longitude values,
+        by default ("lat","lon")
+    apply_mask : bool, optional
+        Only consider valid model points based on the values of the `mask`
+        column in `df_model`.  If `mask` == 1, it is considered a valid
+        point. By default, True
+
+    Returns
+    -------
+    pandas.core.frame.DataFrame
+        The `df_locs` DataFrame is returned with additional columns that
+        map the points to the model grid
+
+        mod_index : int
+            Index value of selected point in `df_model`
+        distance : float
+            Physical distance in km between the location and the selected
+            grid cell location
+        model_coords : tuple(float,float)
+            Coordinates of selected model grid cell
+        dim_vals : tuple(float or int, float or int)
+            Dimension values of selected model grid cell
+    """
 
     # Expand coords from kwargs
     ycoord1, xcoord1 = model_coords
@@ -244,6 +293,27 @@ def get_xgcm_grid(dset, coord_dict=None, symmetric=False):
 
 
 def tile_nominal_coords(xcoord, ycoord, warn=True):
+    """Function to convert 1-D dimensions to 2-D coordinate variables
+
+    This function converts 1-dimensional arrays of x and y coordinates
+    to 2-dimensional lon and lat variables. This function is appropriate
+    for regular lat-lon grids but should not be used with ocean model
+    nominal coordinates associated with irregular grids.
+
+    Parameters
+    ----------
+    xcoord : xarray.core.dataarray.DataArray
+        x or longitude 1D coordinate
+    ycoord : xarray.core.dataarray.DataArray
+        y or latitude 1D coordinate
+    warn : bool, optional
+        Issue warning message, by default True
+
+    Returns
+    -------
+    Tuple[xarray.core.dataarray.DataArray, xarray.core.dataarray.DataArray]
+        2-dimensional longitude and latitude variables
+    """
     assert isinstance(xcoord, xr.DataArray), "xcoord must be xarray.DataArray"
     assert isinstance(ycoord, xr.DataArray), "ycoord must be xarray.DataArray"
 
@@ -420,6 +490,22 @@ def validate_dataset(dset, reference=False, strict=True, additional_vars=None):
 
 
 def validate_tidegauge_data(arr, xcoord, ycoord, mask):
+    """Function to validate inputs to `tidegauge.extract_tidegauge`
+
+    This function validates the input arguments before the tide gauge
+    point extraction function continues
+
+    Parameters
+    ----------
+    arr : xarray.core.dataarray.DataArray
+        Input DataArray object
+    xcoord : xarray.core.dataarray.DataArray or str
+        x-coordinate name or object
+    ycoord : xarray.core.dataarray.DataArray or str
+        y-coordinate name or object
+    mask : xarray.core.dataarray.DataArray or None
+        wet mask array
+    """
     # confirm that input is xarray
     assert isinstance(
         arr, xr.DataArray

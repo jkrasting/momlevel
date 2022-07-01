@@ -11,6 +11,24 @@ __all__ = ["extract_tidegauge"]
 
 
 def extract_point(arr, row):
+    """Function to extract point from an array
+
+    This function takes an individual row from the output of
+    util.geolocate_points and used the information to extract
+    that location from the array.
+
+    Parameters
+    ----------
+    arr : xarray.core.dataarray.DataArray
+        Input data array
+    row : pandas.core.series.Series
+        Row from DataFrame of mapped locations. This row must
+        include `name`, `dims`, and `dim_vals`
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+    """
     return xr.DataArray(
         arr.sel(**dict(zip(row["dims"], row["model_coords"]))),
         name=row["name"],
@@ -21,6 +39,35 @@ def extract_point(arr, row):
 def extract_tidegauge(
     arr, xcoord="geolon", ycoord="geolat", df_loc=None, mask=None, threshold=None
 ):
+    """Function to extract tide gauge locations from an input array
+
+    This function accepts and xarray.DataArray and returns a new Dataset object
+    with individual variables corresponding to the requested locations. The deafult
+    behavior is to use a set of US-based tide gauge locations that is included with
+    this package but can be overridden by supplying a separate DataFrame.
+
+    Parameters
+    ----------
+    arr : xarray.core.dataarray.DataArray
+        Input data array
+    xcoord : xarray.core.dataarray.DataArray or str
+        x-coordinate name or object
+    ycoord : xarray.core.dataarray.DataArray or str
+        y-coordinate name or object
+    df_loc : None, optional
+        DataFrame object containing rows of tide gauge locations
+    mask : xarray.core.dataarray.DataArray, optional
+        Wet mask on model grid (1=ocean, 0=land)
+    threshold : float, optional
+        Filter locations that are insufficiently close to a model
+        grid point. A value of 1 to 1.5 of the model's nominal
+        resolution is a suggested value, by default None
+
+    Returns
+    -------
+    xarray.core.dataset.Dataset
+        Dataset containing individual DataArrays for each requested location
+    """
 
     # Validate inputs
     validate_tidegauge_data(arr, xcoord, ycoord, mask)
