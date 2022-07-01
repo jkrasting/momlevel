@@ -1,6 +1,8 @@
 import pytest
 
 import numpy as np
+import pandas as pd
+import pkg_resources as pkgr
 
 from momlevel import reference
 from momlevel import util
@@ -10,6 +12,8 @@ from momlevel.test_data import (
     generate_test_data_time,
     generate_test_data_uv,
 )
+
+from pandas.util.testing import assert_frame_equal
 
 dset = generate_test_data()
 dset2 = generate_test_data_dz()
@@ -189,3 +193,21 @@ def test_tile_nominal_coords():
     result1, result2 = util.tile_nominal_coords(dset.xh, dset.yh)
     assert result1.sum().values == result2.sum().values
     assert np.allclose(result1.sum(), 75.0)
+
+
+def test_geolocate_points():
+    """Tests behavior of geolocate_points function"""
+    df_model = pd.read_csv(
+        pkgr.resource_filename("momlevel", "resources/NWA12_grid_dataframe.csv"),
+        index_col=[0, 1],
+    )
+    df_loc = pd.read_csv(
+        pkgr.resource_filename("momlevel", "resources/us_tide_gauges.csv")
+    )
+    df_loc = df_loc.rename(columns={"PSMSL_site": "name"})
+    reference = pd.read_csv(
+        pkgr.resource_filename("momlevel", "resources/geolocate_points_reference.csv"),
+        index_col=[0],
+    )
+    results = util.geolocate_points(df_model, df_loc, threshold=13.75)
+    assert np.allclose(results["distance"], reference["distance"], rtol=1e-04)
