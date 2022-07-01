@@ -1,6 +1,8 @@
 import pytest
 
 import numpy as np
+import pandas as pd
+import pkg_resources as pkgr
 
 from momlevel import reference
 from momlevel import util
@@ -10,6 +12,8 @@ from momlevel.test_data import (
     generate_test_data_time,
     generate_test_data_uv,
 )
+
+from pandas.util.testing import assert_frame_equal
 
 dset = generate_test_data()
 dset2 = generate_test_data_dz()
@@ -140,3 +144,70 @@ def test_get_xgcm_grid_2():
     answer = dict({"center": "outer", "outer": "center"})
     assert result.__dict__["axes"]["X"].__dict__["_default_shifts"] == answer
     assert result.__dict__["axes"]["Y"].__dict__["_default_shifts"] == answer
+
+
+def test_validate_tidegauge_data_1():
+    """tests that input datasets to the tide gauge routines are valid"""
+    util.validate_tidegauge_data(dset.thetao, "xh", "yh", None)
+
+
+def test_validate_tidegauge_data_2():
+    """tests that input datasets to the tide gauge routines are valid"""
+    with pytest.raises(Exception):
+        util.validate_tidegauge_data(dset, "xh", "yh", None)
+
+
+def test_validate_tidegauge_data_3():
+    """tests that input datasets to the tide gauge routines are valid"""
+    with pytest.raises(Exception):
+        util.validate_tidegauge_data(dset.thetao, "geolon", "geolat", None)
+
+
+def test_validate_tidegauge_data_4():
+    """tests that input datasets to the tide gauge routines are valid"""
+    util.validate_tidegauge_data(dset.thetao, dset.geolon, dset.geolat, None)
+
+
+def test_validate_tidegauge_data_5():
+    """tests that input datasets to the tide gauge routines are valid"""
+    with pytest.raises(Exception):
+        util.validate_tidegauge_data(
+            dset.thetao, dset.geolon, np.array(dset.geolat), None
+        )
+
+
+def test_validate_tidegauge_data_6():
+    """tests that input datasets to the tide gauge routines are valid"""
+    util.validate_tidegauge_data(
+        dset.thetao, dset.geolon, dset.geolat, dset.areacello * 0.0
+    )
+
+
+def test_validate_tidegauge_data_7():
+    """tests that input datasets to the tide gauge routines are valid"""
+    with pytest.raises(Exception):
+        util.validate_tidegauge_data(dset.thetao, dset.geolon, dset.geolat, "wet")
+
+
+def test_tile_nominal_coords():
+    result1, result2 = util.tile_nominal_coords(dset.xh, dset.yh)
+    assert result1.sum().values == result2.sum().values
+    assert np.allclose(result1.sum(), 75.0)
+
+
+def test_geolocate_points():
+    """Tests behavior of geolocate_points function"""
+    df_model = pd.read_csv(
+        pkgr.resource_filename("momlevel", "resources/NWA12_grid_dataframe.csv"),
+        index_col=[0, 1],
+    )
+    df_loc = pd.read_csv(
+        pkgr.resource_filename("momlevel", "resources/us_tide_gauges.csv")
+    )
+    df_loc = df_loc.rename(columns={"PSMSL_site": "name"})
+    reference = pd.read_csv(
+        pkgr.resource_filename("momlevel", "resources/geolocate_points_reference.csv"),
+        index_col=[0],
+    )
+    results = util.geolocate_points(df_model, df_loc, threshold=13.75)
+    assert np.allclose(results["distance"], reference["distance"], rtol=1e-04)

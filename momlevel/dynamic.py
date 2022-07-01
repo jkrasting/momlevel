@@ -1,8 +1,5 @@
 """ dynamic.py - module for funcs related to dynamic sea level / ssh """
 
-import numpy as np
-import xarray as xr
-
 from momlevel.derived import calc_rho
 
 __all__ = ["inverse_barometer"]

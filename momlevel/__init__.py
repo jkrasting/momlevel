@@ -15,3 +15,5 @@ from .steric import (
     steric,
     thermosteric,
 )
+
+from .tidegauge import extract_tidegauge
