@@ -1,7 +1,10 @@
 ipython
 jupyter
+jupyter-sphinx
 matplotlib
 netcdf4
 numpy>=1.21.0
+pydata-sphinx-theme
+scikit-learn>=1.0.1
 xarray>=0.20.0
 xgcm
