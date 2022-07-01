@@ -1,7 +1,5 @@
 """ tidegauge.py - tide gauge tools for momlevel """
 
-import warnings
-import numpy as np
 import pandas as pd
 import pkg_resources as pkgr
 import xarray as xr
@@ -51,7 +49,7 @@ def extract_tidegauge(
         mask = mask.rename("mask")
 
     # Create pandas.DataFrame of model coordinate info
-    df = pd.concat(
+    df_model = pd.concat(
         [
             _xcoord.to_dataframe(),
             _ycoord.to_dataframe(),
@@ -70,7 +68,7 @@ def extract_tidegauge(
 
     # Call the geolocate function
     df_mapped = geolocate_points(
-        df, df_loc, threshold=threshold, model_coords=(_ycoord.name, _xcoord.name)
+        df_model, df_loc, threshold=threshold, model_coords=(_ycoord.name, _xcoord.name)
     )
 
     # Add dim names back into data frame

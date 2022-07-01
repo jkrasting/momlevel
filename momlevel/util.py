@@ -1,13 +1,11 @@
 """ util.py - generic utilities for momlevel """
 
 import warnings
-
-import pandas as pd
 import xgcm
 import numpy as np
 import xarray as xr
-from momlevel import eos
 from sklearn.neighbors import BallTree
+from momlevel import eos
 
 __all__ = [
     "annual_average",
@@ -434,16 +432,18 @@ def validate_tidegauge_data(arr, xcoord, ycoord, mask):
     if isinstance(xcoord, str):
         assert xcoord in _coords, f"`{xcoord}` not found in input array."
     else:
-        assert isinstance(
-            xcoord, xr.DataArray
-        ), "xcoord must either be a DataArray object or a string that references an existing coordinate"
+        assert isinstance(xcoord, xr.DataArray), (
+            "xcoord must either be a DataArray object or a "
+            + "string that references an existing coordinate"
+        )
 
     if isinstance(ycoord, str):
         assert ycoord in _coords, f"`{ycoord}` not found in input array."
     else:
-        assert isinstance(
-            ycoord, xr.DataArray
-        ), "ycoord must either be a DataArray object or a string that references an existing coordinate"
+        assert isinstance(ycoord, xr.DataArray), (
+            "ycoord must either be a DataArray object or a "
+            + "string that references an existing coordinate"
+        )
 
     if mask is not None:
         assert isinstance(mask, xr.DataArray), "mask be a DataArray object"
