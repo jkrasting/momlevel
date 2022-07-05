@@ -12,13 +12,11 @@ level-related fields with MOM6 output.
 .. toctree::
    :maxdepth: 1
    :hidden:
-   :caption: Background
+   :caption: Getting Started
 
    objective
-   eos
-   steric
-   tidegauge
-   inverse_barometer
+   install
+   contrib
 
 ..   install
 ..   virtualenv
@@ -27,10 +25,12 @@ level-related fields with MOM6 output.
 .. toctree::
    :maxdepth: 1
    :hidden:
-   :caption: Installation and Contributing
+   :caption: Analyzing Sea Level
 
-   install
-   contrib
+   Equation of State <eos>
+   Steric Sea Level <steric>
+   Inverse Barometer Effect <inverse_barometer>
+   Extracting Data at Tide Gauge Locations <tidegauge>
 
 .. * :doc:`generate_diags`
 .. * :doc:`sqlite_format`
