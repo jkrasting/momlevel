@@ -1,12 +1,12 @@
 Inverse Barometer Effect
 ==============================
 
-The **inverse barometer** effect on sea level is the ocean’s response to pressure and density variations at the surface.  Pressure perturbations dominate this effect and can arise from atmospheric variability or ice coverage.  The inverse barometer effect is represented by:
+The **inverse barometer** effect on sea level is the ocean’s response to pressure and density variations at the surface. Regional variations in atmospheric mass will cause regional variations in ocean sea level due to the inverse barometer effect. Similarly, changes in sea ice coverage lead to pressure perturbations at the ocean surface.  The inverse barometer effect is represented by:
 
 .. math::
-  \eta^{ib} = \frac{{-P^{\prime}}_{atm}}{\rho(\theta,S,p) * g}
+  \eta^{ib} = \frac{-P_{atm}}{\rho(\theta,S,p) * g}
 
-Where :math:`P^{\prime}` is often expressed as pressure anomaly relative to a time mean state and :math:`\rho` is the density at the ocean surface.  In practice, it is common to consider :math:`\rho_{\sigma=0}` as this quantity is commonly saved from ocean models, although the calculation of in-situ density is considered slightly more precise.
+Where :math:`P_{atm}` is the full atmospheric pressure and :math:`\rho` is the density at the ocean surface.  In practice, it is common to consider in situ ocean denisty (``rhozero``) at the top model layer as this quantity is commonly saved from ocean models.
 
 .. figure:: inverse_barometer.svg
   :alt: Inverse barometer effect schematic

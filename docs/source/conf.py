@@ -45,7 +45,31 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'pydata_sphinx_theme'
+
+#html_theme = 'pydata_sphinx_theme'
+html_theme = "sphinx_book_theme"
+
+html_title = "momlevel - Sea Level Analysis Tools"
+
+html_context = {
+    "github_user": "jkrasting",
+    "github_repo": "momlevel",
+    "github_version": "main",
+    "doc_path": "docs",
+}
+
+html_theme_options = dict(
+    repository_url="https://github.com/jkrasting/momlevel",
+    repository_branch="main",
+    use_edit_page_button=True,
+    use_repository_button=True,
+    use_issues_button=True,
+    home_page_in_toc=False,
+    extra_navbar="",
+    navbar_footer_text="",
+    extra_footer="",
+    twitter_url="https://twitter.com/krasting",
+)
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

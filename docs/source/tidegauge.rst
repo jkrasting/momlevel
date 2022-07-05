@@ -9,7 +9,7 @@ The **momlevel** package includes functions for extracting ocean model output at
 
 Issues with Point Extraction
 ----------------------------
-Ocean model output is typically presented on irregular grids such that the spacing between grid points in the x and y directions is not guaranteed to be even. These grids have 2-dimensional coordinate variables, e.g. ``geolat`` and ``geolon``, that describe the true coordinates of the model grid points.
+Ocean model output is typically presented on irregular grids such that the spacing between grid points in the x and y directions is not guaranteed to be uniform. These grids have 2-dimensional coordinate variables, e.g. ``geolat`` and ``geolon``, that describe the true coordinates of the model grid points.
 
 .. warning::
     The ``geolon`` and ``geolat`` variables from MOM6 output represent the true coordinates of the grid cell. These variables should always be used when referencing the model output to real-world locations, such as for plotting and for point extraction.
@@ -20,7 +20,7 @@ Ocean model output is typically presented on irregular grids such that the spaci
 
 Tide gauges are often located along coastlines at the interface between the land and ocean. Sometimes the nearest model grid point to a point location is not a valid ocean point. The tide gauge extraction in **momlevel** searches for the nearest `valid ocean grid point`.
 
-Users can also specify a maximum distance between a real-world location and a model grid point. A threshold of 1.5 times the nominal model horizontal resolution is recommended for most applications. The distance between a point location and a model grid cell is calculated using a haversine, or great-circle, distance.
+Users can also specify a maximum distance between a real-world location and a model grid point. A threshold of 1.5 times the nominal model horizontal grid spacing is recommended for most applications. The distance between a point location and a model grid cell is calculated using a haversine, or great-circle, distance.
 
 Example Usage
 -------------
