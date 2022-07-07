@@ -3,6 +3,7 @@
 import xgcm
 import numpy as np
 import xarray as xr
+from momlevel import spice
 from momlevel import util
 
 
@@ -19,6 +20,7 @@ __all__ = [
     "calc_rho",
     "calc_rhoga",
     "calc_rossby_rd",
+    "calc_spice",
     "calc_volo",
     "calc_wave_speed",
 ]
@@ -617,6 +619,51 @@ def calc_rhoga(masso, volo):
         "units": "kg m-3",
     }
     return rhoga
+
+
+def calc_spice(thetao, so):
+    """Function to calculate seawater spiciness
+
+    This function uses the Flament 2002 methodology for calculating
+    seawater spiciness:
+
+    Flament, P. 2002: A state variable for characterizing water
+    masses and their diffusive stability: spiciness.
+    Progress in Oceanography, 54, 493–501.
+    https://doi.org/10.1016/S0079-6611(02)00065-4
+
+    Parameters
+    ----------
+    thetao : xarray.core.dataarray.DataArray
+        Sea water potential temperature in deg C
+    so : xarray.core.dataarray.DataArray
+        Sea water practical salinity in PSU
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+        Sea water spiciness, unitless
+    """
+
+    # obtain the function object corresponding to the spice calculation
+    # (this is hard-coded for now but is designed to be modular to
+    # allow for other methodologies in the future)
+    spice_func = spice.flament.spice
+
+    pi = xr.apply_ufunc(
+        spice_func,
+        thetao,
+        so,
+        dask="allowed",
+    )
+
+    pi.attrs = {
+        "long_name": "Sea water spiciness",
+        "comment": "calculated based on Flament 2002 methodology",
+        "units": "1",
+    }
+
+    return pi
 
 
 def calc_volo(volcello):

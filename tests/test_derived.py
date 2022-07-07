@@ -122,6 +122,11 @@ def test_calc_rossby_rd():
     assert np.allclose(rossby_rd.sum(), 11779400.69254739)
 
 
+def test_calc_spice():
+    pi = derived.calc_spice(dset1.thetao, dset1.so)
+    assert np.allclose(pi.sum(), 1341.51468477)
+
+
 def test_calc_wave_speed():
     n2 = derived.calc_n2(dset1.thetao, dset1.so)
     dz = derived.calc_dz(dset1.z_l, dset1.z_i, dset1.deptho)
