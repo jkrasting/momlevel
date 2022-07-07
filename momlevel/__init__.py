@@ -5,6 +5,7 @@ from .version import __version__
 from . import derived
 from . import eos
 from . import reference
+from . import spice
 from . import test_data
 from . import util
 
