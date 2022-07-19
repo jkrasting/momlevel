@@ -127,6 +127,13 @@ def test_calc_spice():
     assert np.allclose(pi.sum(), 1341.51468477)
 
 
+def test_calc_stability_angle():
+    tu_ang = derived.calc_stability_angle(
+        dset1.thetao, dset1.so, dset1.z_l * 1.0e4, eos="Wright"
+    )
+    assert np.allclose(tu_ang.sum(), 229.53184304)
+
+
 def test_calc_wave_speed():
     n2 = derived.calc_n2(dset1.thetao, dset1.so)
     dz = derived.calc_dz(dset1.z_l, dset1.z_i, dset1.deptho)
