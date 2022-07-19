@@ -20,6 +20,7 @@ __all__ = [
     "calc_rho",
     "calc_rhoga",
     "calc_rossby_rd",
+    "calc_stability_angle",
     "calc_spice",
     "calc_volo",
     "calc_wave_speed",
@@ -664,6 +665,61 @@ def calc_spice(thetao, so):
     }
 
     return pi
+
+
+def calc_stability_angle(thetao, so, pres, eos="Wright", zcoord="z_l"):
+    """Function to calculate the stability angle
+
+    This function calculates the stability angle, also known as the
+    Turner angle, which indicates the stability properties of the
+    water column with respect to double diffusion.
+
+    The water column is considered stable if the angle is between
+    -45 and 45 degrees.  The column is unstable with respect to
+    salt fingering if the angle is less than -45 degrees. The column
+    is unstable with respect to diffusion.
+
+    Parameters
+    ----------
+    thetao : xarray.core.dataarray.DataArray
+        Sea water potential temperature in units = degC
+    so : xarray.core.dataarray.DataArray
+        Sea water salinity in units = 0.001
+    pres : xarray.core.dataarray.DataArray
+        Sea water absolute pressure, in units of Pa
+    eos : str
+        Equation of state, by default "Wright"
+    zcoord : str, optional
+        Vertical coorindate name, by default "z_l"
+
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+        Stability angle in degrees
+    """
+
+    # calculate alpha and beta
+    alpha = calc_alpha(thetao, so, pres, eos=eos)
+    beta = calc_beta(thetao, so, pres, eos=eos)
+
+    # calculate temperature and salinity derivatives
+    dtdz = thetao.differentiate(zcoord, edge_order=2)
+    dsdz = so.differentiate(zcoord, edge_order=2)
+
+    # calculate the density ratio
+    R_rho = (beta * dsdz) / (alpha * dtdz)
+
+    result = np.degrees(np.arctan((1 + R_rho) / (1 - R_rho)))
+
+    result = result.rename("tu_angle")
+
+    result.attrs = {
+        "long_name": "Stability angle",
+        "units": "degrees",
+    }
+
+    return result
 
 
 def calc_volo(volcello):
