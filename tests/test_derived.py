@@ -103,13 +103,18 @@ def test_calc_rel_vort():
     assert np.allclose(result.sum(), -6.92989256e-14)
 
 
-def test_calc_pv():
+def test_calc_pv_1():
     zeta = derived.calc_rel_vort(dset3)
     n2 = derived.calc_n2(dset1.thetao, dset1.so)
-    pv = derived.calc_pv(zeta, dset3.Coriolis, n2)
-    # convert to WOCE conventional units of 10*14 cm-1 s-1
-    pv = (pv / 100.0) * 1e14
-    assert np.allclose(pv.sum(), 100501.23796741)
+    pv = derived.calc_pv(zeta, dset3.Coriolis, n2, units="m")
+    assert np.allclose(pv.sum(), 1.00501238e-07)
+
+
+def test_calc_pv_2():
+    zeta = derived.calc_rel_vort(dset3)
+    n2 = derived.calc_n2(dset1.thetao, dset1.so)
+    pv = derived.calc_pv(zeta, dset3.Coriolis, n2, units="cm")
+    assert np.allclose(pv.sum(), 2515708.91532095)
 
 
 def test_calc_rossby_rd():
