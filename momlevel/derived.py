@@ -470,7 +470,9 @@ def calc_pdens(thetao, so, level=0.0, patm=101325, eos="Wright"):
     return rhopot
 
 
-def calc_pv(zeta, coriolis, n2, gravity=9.8, coord_dict=None, symmetric=False):
+def calc_pv(
+    zeta, coriolis, n2, gravity=9.8, coord_dict=None, symmetric=False, units="m"
+):
     """Function to calculate ocean potential vorticity
 
     This function calculates potential vorticity given the relative vorticity,
@@ -491,6 +493,10 @@ def calc_pv(zeta, coriolis, n2, gravity=9.8, coord_dict=None, symmetric=False):
         the MOM6 default values, by default None
     symmetric : bool
         Flag denoting symmetric grid, by default False
+    units : str, optional
+        Output units convention of either `m` or `cm` per second.
+        The `cm` per second option takes the absolute value of
+        potential vorticity and multiplies by 1.e14, by default "m"
 
     Returns
     -------
@@ -513,10 +519,21 @@ def calc_pv(zeta, coriolis, n2, gravity=9.8, coord_dict=None, symmetric=False):
     # calculate potential vorticity
     swpotvort = (zeta + coriolis) * (n2 / gravity)
 
-    swpotvort.attrs = {
-        "long_name": "Ocean potential vorticity",
-        "units": "m-1 s-1",
-    }
+    if units == "m":
+        swpotvort.attrs = {
+            "long_name": "Ocean potential vorticity",
+            "units": "m-1 s-1",
+        }
+
+    elif units == "cm":
+        swpotvort = np.abs(((swpotvort / 100) * 1.0e14))
+        swpotvort.attrs = {
+            "long_name": "Ocean potential vorticity",
+            "units": "10^14 cm-1 s-1",
+        }
+
+    else:
+        raise ValueError(f"unknown units option `{units}`")
 
     return swpotvort
 
