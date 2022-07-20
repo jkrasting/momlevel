@@ -137,3 +137,7 @@ dask-worker-space/
 # Sphinx
 docs/source/api/
 docs/source/savefig/
+docs/jupyter_execute
+
+# NetCDF
+*.nc
