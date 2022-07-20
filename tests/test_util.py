@@ -1,5 +1,6 @@
 import pytest
 
+import hashlib
 import numpy as np
 import pandas as pd
 import pkg_resources as pkgr
@@ -211,3 +212,11 @@ def test_geolocate_points():
     )
     results = util.geolocate_points(df_model, df_loc, threshold=13.75)
     assert np.allclose(results["distance"], reference["distance"], rtol=1e-04)
+
+
+def test_get_pv_colormap():
+    levels, colors = util.get_pv_colormap()
+    m = hashlib.md5()
+    for s in levels + colors:
+        m.update(str(s).encode())
+    assert m.hexdigest() == "29b7e26115ca782ffa09994057137f1a"

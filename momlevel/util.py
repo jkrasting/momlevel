@@ -10,6 +10,7 @@ from momlevel import eos
 __all__ = [
     "annual_average",
     "default_coords",
+    "get_pv_colormap",
     "get_xgcm_grid",
     "geolocate_points",
     "tile_nominal_coords",
@@ -235,6 +236,34 @@ def geolocate_points(
     df2 = df2.drop(["yrad", "xrad", "lat", "lon"], axis=1)
 
     return df2
+
+
+def get_pv_colormap():
+    colors = (
+        ["#ffffff"]
+        + ["#66ff00"] * 5
+        + ["#99ff00"] * 7
+        + ["#ccff00"] * 4
+        + ["#ffccff"] * 2
+        + ["#ff99ff"] * 2
+        + ["#ff4cff"] * 5
+        + ["#ff00ff"] * 4
+    )
+
+    levels = (
+        [0.0, 0.0001]
+        + list(np.arange(1.0, 10.0, 1.0))
+        + [
+            10.0,
+            15.0,
+        ]
+        + list(np.arange(20.0, 100.0, 10.0))
+        + list(np.arange(100.0, 200.0, 20.0))
+        + list(np.arange(200.0, 500.0, 100.0))
+        + [2000.0]
+    )
+
+    return (levels, colors)
 
 
 def get_xgcm_grid(dset, coord_dict=None, symmetric=False):
