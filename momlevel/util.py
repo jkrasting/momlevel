@@ -1,14 +1,18 @@
 """ util.py - generic utilities for momlevel """
 
+import datetime as dt
 import warnings
-import xgcm
+
 import numpy as np
 import xarray as xr
+import xgcm
 from sklearn.neighbors import BallTree
+
 from momlevel import eos
 
 __all__ = [
     "annual_average",
+    "annual_cycle",
     "default_coords",
     "get_pv_colormap",
     "get_xgcm_grid",
@@ -84,6 +88,75 @@ def annual_average(xobj, tcoord="time"):
             result[var].attrs = xobj[var].attrs if var in list(xobj.variables) else {}
 
     result.attrs = xobj.attrs
+
+    return result
+
+
+def annual_cycle(xobj, tcoord="time", func="mean"):
+    """Function to calculate annual cycle climatology
+
+    This function calculates the annual cycle climatology from an
+    xarray dataset containing monthly timeseries variables.
+
+    Parameters
+    ----------
+    xobj : xarray.core.dataset.Dataset or xarray.core.dataarray.DataArray
+        Input xarray object
+    tcoord : str, optional
+        Name of time coordinate, by default "time"
+    func : str, optional
+        "mean", "std", "min", or "max" across for the climatology,
+        by default "mean"
+
+    Returns
+    -------
+    xarray.core.dataset.Dataset
+        Annual cycle climatology with 12 time points, 1 per month
+    """
+
+    calendar = xobj[tcoord].values[0].calendar
+
+    dim_coords = set(xobj.dims).union(set(xobj.coords))
+
+    if isinstance(xobj, xr.core.dataset.Dataset):
+        variables = set(xobj.variables) - dim_coords
+        _xobj = xr.Dataset()
+        for var in variables:
+            if xobj[var].dtype not in ["object", "timedelta64[ns]"]:
+                _xobj[var] = xobj[var]
+    else:
+        _xobj = xobj
+
+    init = xobj[tcoord].values[0]
+    delta = dt.timedelta(seconds=int((xobj[tcoord][-1] - xobj[tcoord][0]) / 2) / 1e9)
+    midyear = (init + delta).year
+
+    bounds = xr.cftime_range(
+        f"{str(midyear).zfill(4)}-01-01",
+        freq="MS",
+        periods=13,
+        calendar=calendar,
+    )
+
+    bounds = [
+        bounds[x] + (bounds[x + 1] - bounds[x]) / 2 for x in range(0, len(bounds) - 1)
+    ]
+
+    result = _xobj.groupby(f"{tcoord}.month")
+
+    if func == "mean":
+        result = result.mean(tcoord)
+    elif func == "min":
+        result = result.min(tcoord)
+    elif func == "max":
+        result = result.max(tcoord)
+    elif func == "std":
+        result = result.std(tcoord)
+    else:
+        raise ValueError(f"Unknown argument 'func={func}' to annual cycle")
+
+    result = result.rename({"month": tcoord})
+    result = result.assign_coords({tcoord: bounds})
 
     return result
 
