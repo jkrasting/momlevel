@@ -29,6 +29,10 @@ dset3 = generate_test_data_time()
 dset4 = generate_test_data_time(calendar="julian")
 dset5 = generate_test_data_uv()
 
+dset6 = generate_test_data_time(nyears=2, start_year=1979, frequency="D", calendar="noleap")
+dset7 = generate_test_data_time(nyears=2, start_year=1979, frequency="D", calendar="standard")
+
+
 
 def test_default_coords_1():
     result = util.default_coords()
@@ -227,3 +231,13 @@ def test_get_pv_colormap():
     for s in levels + colors:
         m.update(str(s).encode())
     assert m.hexdigest() == "29b7e26115ca782ffa09994057137f1a"
+
+def test_monthly_average_1():
+    result = util.monthly_average(dset6).sum()
+    assert np.allclose(result["var_a"], 60167.13927143)
+    assert np.allclose(result["var_b"], 60036.90907922)
+
+def test_monthly_average_2():
+    result = util.monthly_average(dset7).sum()
+    assert np.allclose(result["var_a"], 60163.23828842)
+    assert np.allclose(result["var_b"], 60036.8317591)
