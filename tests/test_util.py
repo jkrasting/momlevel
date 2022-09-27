@@ -8,6 +8,7 @@ import pkg_resources as pkgr
 from momlevel import reference
 from momlevel import util
 from momlevel.test_data import (
+    generate_daily_timeaxis,
     generate_test_data,
     generate_test_data_dz,
     generate_test_data_time,
@@ -16,11 +17,31 @@ from momlevel.test_data import (
 
 from pandas.util.testing import assert_frame_equal
 
+
+def test_generate_daily_timeaxis():
+    assert len(generate_daily_timeaxis()) == 730
+    assert len(generate_daily_timeaxis(calendar="standard")) == 731
+
+
 dset = generate_test_data()
 dset2 = generate_test_data_dz()
 dset3 = generate_test_data_time()
 dset4 = generate_test_data_time(calendar="julian")
 dset5 = generate_test_data_uv()
+
+dset6 = generate_test_data_time(
+    nyears=2, start_year=1979, frequency="D", calendar="noleap"
+)
+dset7 = generate_test_data_time(
+    nyears=2, start_year=1979, frequency="D", calendar="standard"
+)
+
+dset8 = generate_test_data_time(
+    nyears=5, start_year=1979, frequency="D", calendar="noleap"
+)
+dset9 = generate_test_data_time(
+    nyears=5, start_year=1979, frequency="D", calendar="standard"
+)
 
 
 def test_default_coords_1():
@@ -220,3 +241,55 @@ def test_get_pv_colormap():
     for s in levels + colors:
         m.update(str(s).encode())
     assert m.hexdigest() == "29b7e26115ca782ffa09994057137f1a"
+
+
+def test_monthly_average_1():
+    result = util.monthly_average(dset6).sum()
+    assert np.allclose(result["var_a"], 60167.13927143)
+    assert np.allclose(result["var_b"], 60036.90907922)
+
+
+def test_monthly_average_2():
+    result = util.monthly_average(dset7).sum()
+    assert np.allclose(result["var_a"], 60163.23828842)
+    assert np.allclose(result["var_b"], 60036.8317591)
+
+
+def test_annual_cycle_1():
+    result = util.annual_cycle(util.monthly_average(dset8))
+    assert len(result.time) == 12
+    result = result.sum()
+    assert np.allclose(result["var_a"], 30043.9981433)
+    assert np.allclose(result["var_b"], 29992.27048348)
+
+
+def test_annual_cycle_2():
+    result = util.annual_cycle(util.monthly_average(dset9))
+    assert len(result.time) == 12
+    result = result.sum()
+    assert np.allclose(result["var_a"], 30043.9981433)
+    assert np.allclose(result["var_b"], 29993.37508877)
+
+
+def test_annual_cycle_3():
+    result = util.annual_cycle(util.monthly_average(dset8), func="std")
+    assert len(result.time) == 12
+    result = result.sum()
+    assert np.allclose(result["var_a"], 909.30443538)
+    assert np.allclose(result["var_b"], 913.21989648)
+
+
+def test_annual_cycle_4():
+    result = util.annual_cycle(util.monthly_average(dset8), func="max")
+    assert len(result.time) == 12
+    result = result.sum()
+    assert np.allclose(result["var_a"], 31295.58398947)
+    assert np.allclose(result["var_b"], 31260.98038945)
+
+
+def test_annual_cycle_5():
+    result = util.annual_cycle(util.monthly_average(dset8), func="min")
+    assert len(result.time) == 12
+    result = result.sum()
+    assert np.allclose(result["var_a"], 28782.31507282)
+    assert np.allclose(result["var_b"], 28742.60226595)

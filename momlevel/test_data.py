@@ -1,14 +1,45 @@
 """ test_data.py - module for generating test data """
 
-import xarray as xr
+import datetime as dt
+
+import cftime
 import numpy as np
+import xarray as xr
 
 __all__ = [
+    "generate_daily_timeaxis",
     "generate_test_data",
     "generate_test_data_dz",
     "generate_test_data_time",
     "generate_test_data_uv",
 ]
+
+
+def generate_daily_timeaxis(start_year=1979, nyears=2, calendar="noleap"):
+    """Function to generate a daily time axis for testing
+
+    Parameters
+    ----------
+    start_year : int, optional
+        Starting year for timeseries, by default 1979
+    nyears : int, optional
+        Number of years for test data, by default 2
+    calendar : str, optional
+        Valid `cftime` calendar, by default "noleap"
+
+    Returns
+    -------
+    List[cftime._cftime.Datetime]
+        List of cftime datetime objects for specified calendar
+    """
+
+    init = cftime.datetime(start_year, 1, 1, calendar=calendar)
+    endtime = cftime.datetime(start_year + nyears, 1, 1, calendar=calendar)
+
+    days = [init + dt.timedelta(days=x) for x in range(0, 366 * nyears)]
+    days = [x for x in days if x < endtime]
+
+    return days
 
 
 def generate_test_data(start_year=1981, nyears=0, calendar="noleap", seed=123):
@@ -141,7 +172,9 @@ def generate_test_data_dz(seed=123):
     return dset
 
 
-def generate_test_data_time(start_year=1981, nyears=5, calendar="noleap", seed=123):
+def generate_test_data_time(
+    start_year=1981, nyears=5, calendar="noleap", seed=123, frequency="MS"
+):
     """Function to generate test dataset with monthly time resolution
 
     Parameters
@@ -154,14 +187,18 @@ def generate_test_data_time(start_year=1981, nyears=5, calendar="noleap", seed=1
         CF-time recognized calendar, by default "noleap"
     seed : int, optional
         Random number generator seed. By default, 123
+    frequency : str
+        Frequency string compatible with xarray.cftime_range
 
     Returns
     -------
     xarray.core.dataset.Dataset
-        Dataset of annual averages
+        Dataset of sample time series data
     """
 
-    dset = generate_time_stub(start_year=start_year, nyears=nyears, calendar=calendar)
+    dset = generate_time_stub(
+        start_year=start_year, nyears=nyears, calendar=calendar, frequency=frequency
+    )
 
     lon = [1.0, 2.0, 3.0, 4.0, 5.0]
     lon = xr.DataArray(lon, {"lon": lon})
@@ -171,7 +208,7 @@ def generate_test_data_time(start_year=1981, nyears=5, calendar="noleap", seed=1
 
     np.random.seed(seed)
     dset["var_a"] = xr.DataArray(
-        np.random.normal(100, 20, (60, 5, 5)),
+        np.random.normal(100, 20, (len(dset.time), 5, 5)),
         dims=(("time", "lat", "lon")),
         coords={"time": dset.time, "lat": lat, "lon": lon},
         attrs={"first_attribute": "foo", "second_attribute": "bar"},
@@ -179,7 +216,7 @@ def generate_test_data_time(start_year=1981, nyears=5, calendar="noleap", seed=1
 
     np.random.seed(seed * 2)
     dset["var_b"] = xr.DataArray(
-        np.random.normal(100, 20, (60, 5, 5)),
+        np.random.normal(100, 20, (len(dset.time), 5, 5)),
         dims=(("time", "lat", "lon")),
         coords={"time": dset.time, "lat": lat, "lon": lon},
         attrs={"first_attribute": "foo", "second_attribute": "bar"},
@@ -268,13 +305,12 @@ def generate_test_data_uv(start_year=1981, nyears=0, calendar="noleap", seed=123
     return dset
 
 
-def generate_time_stub(start_year=1981, nyears=5, calendar="noleap"):
+def generate_time_stub(start_year=1981, nyears=5, calendar="noleap", frequency="MS"):
     """Function to generate a dataset with a time coordinate
 
     This function creates a "stub" dataset that can be used a starting
     point for further test datasets.  It returns a cf-time index and
-    related FMS bounds and helper fields. Monthly values for `nyears`
-    are generated.
+    related FMS bounds and helper fields. Values for `nyears` are generated.
 
     Parameters
     ----------
@@ -284,15 +320,40 @@ def generate_time_stub(start_year=1981, nyears=5, calendar="noleap"):
         Number of years of monthly data to generate, by default 5
     calendar : str
         Cf-time recognized calendar, by default "noleap"
+    frequency : str
+        Frequency string compatible with xarray.cftime_range
 
     Returns
     -------
     xarray.core.dataset.Dataset
         Stub dataset with time coordinate
     """
-    bounds = xr.cftime_range(
-        f"{start_year}-01-01", freq="MS", periods=(nyears * 12) + 1, calendar=calendar
-    )
+
+    if frequency == "MS":
+        bounds = xr.cftime_range(
+            f"{start_year}-01-01",
+            freq=frequency,
+            periods=(nyears * 12) + 1,
+            calendar=calendar,
+        )
+        bounds = bounds.values
+
+    elif frequency == "D":
+        bounds = xr.cftime_range(
+            f"{start_year}-01-01",
+            freq=frequency,
+            periods=(nyears * 366) + 1,
+            calendar=calendar,
+        )
+        bounds = [
+            x
+            for x in bounds.values
+            if x <= cftime.datetime(start_year + nyears, 1, 1, calendar=calendar)
+        ]
+
+    else:
+        raise ValueError(f"Time frequency '{frequency}' is not currently supported.")
+
     time_bnds = list(zip(bounds[0:-1], bounds[1::]))
     bnds = np.array([1, 2])
 
