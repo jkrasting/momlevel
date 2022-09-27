@@ -299,13 +299,12 @@ def generate_test_data_uv(start_year=1981, nyears=0, calendar="noleap", seed=123
     return dset
 
 
-def generate_time_stub(start_year=1981, nyears=5, calendar="noleap"):
+def generate_time_stub(start_year=1981, nyears=5, calendar="noleap", frequency="MS"):
     """Function to generate a dataset with a time coordinate
 
     This function creates a "stub" dataset that can be used a starting
     point for further test datasets.  It returns a cf-time index and
-    related FMS bounds and helper fields. Monthly values for `nyears`
-    are generated.
+    related FMS bounds and helper fields. Values for `nyears` are generated.
 
     Parameters
     ----------
@@ -315,15 +314,40 @@ def generate_time_stub(start_year=1981, nyears=5, calendar="noleap"):
         Number of years of monthly data to generate, by default 5
     calendar : str
         Cf-time recognized calendar, by default "noleap"
+    frequency : str
+        Frequency string compatible with xarray.cftime_range
 
     Returns
     -------
     xarray.core.dataset.Dataset
         Stub dataset with time coordinate
     """
-    bounds = xr.cftime_range(
-        f"{start_year}-01-01", freq="MS", periods=(nyears * 12) + 1, calendar=calendar
-    )
+
+    if frequency == "MS":
+        bounds = xr.cftime_range(
+            f"{start_year}-01-01",
+            freq=frequency,
+            periods=(nyears * 12) + 1,
+            calendar=calendar,
+        )
+        bounds = bounds.values
+
+    elif frequency == "D":
+        bounds = xr.cftime_range(
+            f"{start_year}-01-01",
+            freq=frequency,
+            periods=(nyears * 366) + 1,
+            calendar=calendar,
+        )
+        bounds = [
+            x
+            for x in bounds.values
+            if x <= cftime.datetime(start_year + nyears, 1, 1, calendar=calendar)
+        ]
+
+    else:
+        raise ValueError(f"Time frequency '{frequency}' is not currently supported.")
+
     time_bnds = list(zip(bounds[0:-1], bounds[1::]))
     bnds = np.array([1, 2])
 
