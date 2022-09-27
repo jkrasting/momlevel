@@ -208,7 +208,7 @@ def generate_test_data_time(
 
     np.random.seed(seed)
     dset["var_a"] = xr.DataArray(
-        np.random.normal(100, 20, (60, 5, 5)),
+        np.random.normal(100, 20, (len(dset.time), 5, 5)),
         dims=(("time", "lat", "lon")),
         coords={"time": dset.time, "lat": lat, "lon": lon},
         attrs={"first_attribute": "foo", "second_attribute": "bar"},
@@ -216,7 +216,7 @@ def generate_test_data_time(
 
     np.random.seed(seed * 2)
     dset["var_b"] = xr.DataArray(
-        np.random.normal(100, 20, (60, 5, 5)),
+        np.random.normal(100, 20, (len(dset.time), 5, 5)),
         dims=(("time", "lat", "lon")),
         coords={"time": dset.time, "lat": lat, "lon": lon},
         attrs={"first_attribute": "foo", "second_attribute": "bar"},
