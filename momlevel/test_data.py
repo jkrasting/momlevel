@@ -172,7 +172,9 @@ def generate_test_data_dz(seed=123):
     return dset
 
 
-def generate_test_data_time(start_year=1981, nyears=5, calendar="noleap", seed=123):
+def generate_test_data_time(
+    start_year=1981, nyears=5, calendar="noleap", seed=123, frequency="MS"
+):
     """Function to generate test dataset with monthly time resolution
 
     Parameters
@@ -185,14 +187,18 @@ def generate_test_data_time(start_year=1981, nyears=5, calendar="noleap", seed=1
         CF-time recognized calendar, by default "noleap"
     seed : int, optional
         Random number generator seed. By default, 123
+    frequency : str
+        Frequency string compatible with xarray.cftime_range
 
     Returns
     -------
     xarray.core.dataset.Dataset
-        Dataset of annual averages
+        Dataset of sample time series data
     """
 
-    dset = generate_time_stub(start_year=start_year, nyears=nyears, calendar=calendar)
+    dset = generate_time_stub(
+        start_year=start_year, nyears=nyears, calendar=calendar, frequency=frequency
+    )
 
     lon = [1.0, 2.0, 3.0, 4.0, 5.0]
     lon = xr.DataArray(lon, {"lon": lon})
