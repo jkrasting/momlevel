@@ -1,14 +1,45 @@
 """ test_data.py - module for generating test data """
 
-import xarray as xr
+import datetime as dt
+
+import cftime
 import numpy as np
+import xarray as xr
 
 __all__ = [
+    "generate_daily_timeaxis",
     "generate_test_data",
     "generate_test_data_dz",
     "generate_test_data_time",
     "generate_test_data_uv",
 ]
+
+
+def generate_daily_timeaxis(start_year=1979, nyears=2, calendar="noleap"):
+    """Function to generate a daily time axis for testing
+
+    Parameters
+    ----------
+    start_year : int, optional
+        Starting year for timeseries, by default 1979
+    nyears : int, optional
+        Number of years for test data, by default 2
+    calendar : str, optional
+        Valid `cftime` calendar, by default "noleap"
+
+    Returns
+    -------
+    List[cftime._cftime.Datetime]
+        List of cftime datetime objects for specified calendar
+    """
+
+    init = cftime.datetime(start_year, 1, 1, calendar=calendar)
+    endtime = cftime.datetime(start_year + nyears, 1, 1, calendar=calendar)
+
+    days = [init + dt.timedelta(days=x) for x in range(0, 366 * nyears)]
+    days = [x for x in days if x < endtime]
+
+    return days
 
 
 def generate_test_data(start_year=1981, nyears=0, calendar="noleap", seed=123):

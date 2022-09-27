@@ -8,6 +8,7 @@ import pkg_resources as pkgr
 from momlevel import reference
 from momlevel import util
 from momlevel.test_data import (
+    generate_daily_timeaxis,
     generate_test_data,
     generate_test_data_dz,
     generate_test_data_time,
@@ -15,6 +16,12 @@ from momlevel.test_data import (
 )
 
 from pandas.util.testing import assert_frame_equal
+
+
+def test_generate_daily_timeaxis():
+    assert len(generate_daily_timeaxis()) == 730
+    assert len(generate_daily_timeaxis(calendar="standard")) == 731
+
 
 dset = generate_test_data()
 dset2 = generate_test_data_dz()
