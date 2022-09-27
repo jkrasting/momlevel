@@ -13,6 +13,7 @@ __all__ = [
     "get_pv_colormap",
     "get_xgcm_grid",
     "geolocate_points",
+    "monthly_average",
     "tile_nominal_coords",
     "validate_areacello",
     "validate_dataset",
@@ -317,6 +318,66 @@ def get_xgcm_grid(dset, coord_dict=None, symmetric=False):
             },
             boundary=None,
         )
+
+    return result
+
+
+def monthly_average(xobj, tcoord="time"):
+    """Function to calculate monthly averages from daily data
+
+    This function calculates monthly averages of the supplied xarray object.
+    Non-numeric variables are skipped.
+
+    Parameters
+    ----------
+    xobj : xarray.core.dataset.Dataset or xarray.core.dataarray.DataArray
+        Input xarray object
+    tcoord : str, optional
+        Name of time coordinate, by default "time"
+
+    Returns
+    -------
+    xarray.core.dataset.Dataset
+    """
+
+    calendar = xobj[tcoord].values[0].calendar
+
+    dim_coords = set(xobj.dims).union(set(xobj.coords))
+
+    if isinstance(xobj, xr.core.dataset.Dataset):
+        variables = set(xobj.variables) - dim_coords
+        _xobj = xr.Dataset()
+        for var in variables:
+            if xobj[var].dtype not in ["object", "timedelta64[ns]"]:
+                _xobj[var] = xobj[var]
+    else:
+        _xobj = xobj
+
+    groups = _xobj.groupby(f"{tcoord}.year")
+
+    record = []
+
+    for grp in sorted(dict(groups).keys()):
+        _ds = groups[grp].groupby(f"{tcoord}.month").mean(tcoord)
+
+        bounds = xr.cftime_range(
+            f"{str(grp).zfill(4)}-01-01",
+            freq="MS",
+            periods=13,
+            calendar=calendar,
+        )
+
+        bounds = [
+            bounds[x] + (bounds[x + 1] - bounds[x]) / 2
+            for x in range(0, len(bounds) - 1)
+        ]
+
+        _ds = _ds.rename({"month": tcoord})
+        _ds = _ds.assign_coords({tcoord: bounds})
+        record.append(_ds)
+
+    result = xr.concat(record, dim=tcoord)
+    result = result.transpose(tcoord, ...)
 
     return result
 
