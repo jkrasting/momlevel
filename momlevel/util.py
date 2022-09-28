@@ -127,9 +127,11 @@ def annual_cycle(xobj, tcoord="time", func="mean"):
     else:
         _xobj = xobj
 
-    init = xobj[tcoord].values[0]
-    delta = dt.timedelta(seconds=int((xobj[tcoord][-1] - xobj[tcoord][0]) / 2) / 1e9)
-    midyear = (init + delta).year
+    endyr = xobj[tcoord].values[-1]
+    startyr = xobj[tcoord].values[0]
+    delta = (endyr - startyr) / 2
+    midyear = startyr + delta
+    midyear = midyear.year
 
     bounds = xr.cftime_range(
         f"{str(midyear).zfill(4)}-01-01",
