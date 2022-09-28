@@ -1,6 +1,5 @@
 """ util.py - generic utilities for momlevel """
 
-import datetime as dt
 import warnings
 
 import numpy as np
