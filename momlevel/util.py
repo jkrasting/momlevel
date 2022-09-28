@@ -1,6 +1,5 @@
 """ util.py - generic utilities for momlevel """
 
-import datetime as dt
 import warnings
 
 import numpy as np
@@ -92,7 +91,7 @@ def annual_average(xobj, tcoord="time"):
     return result
 
 
-def annual_cycle(xobj, tcoord="time", func="mean"):
+def annual_cycle(xobj, tcoord="time", func="mean", time_axis_year=None):
     """Function to calculate annual cycle climatology
 
     This function calculates the annual cycle climatology from an
@@ -107,6 +106,9 @@ def annual_cycle(xobj, tcoord="time", func="mean"):
     func : str, optional
         "mean", "std", "min", or "max" across for the climatology,
         by default "mean"
+    time_axis_year : int, optional
+        Specify year used in resulting time axis, otherwise use the
+        mean year for the entire dataset, by default None
 
     Returns
     -------
@@ -127,9 +129,14 @@ def annual_cycle(xobj, tcoord="time", func="mean"):
     else:
         _xobj = xobj
 
-    init = xobj[tcoord].values[0]
-    delta = dt.timedelta(seconds=int((xobj[tcoord][-1] - xobj[tcoord][0]) / 2) / 1e9)
-    midyear = (init + delta).year
+    if time_axis_year is not None:
+        midyear = int(time_axis_year)
+    else:
+        endyr = xobj[tcoord].values[-1]
+        startyr = xobj[tcoord].values[0]
+        delta = (endyr - startyr) / 2
+        midyear = startyr + delta
+        midyear = midyear.year
 
     bounds = xr.cftime_range(
         f"{str(midyear).zfill(4)}-01-01",

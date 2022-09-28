@@ -32,6 +32,7 @@ dset5 = generate_test_data_uv()
 dset6 = generate_test_data_time(
     nyears=2, start_year=1979, frequency="D", calendar="noleap"
 )
+
 dset7 = generate_test_data_time(
     nyears=2, start_year=1979, frequency="D", calendar="standard"
 )
@@ -39,6 +40,7 @@ dset7 = generate_test_data_time(
 dset8 = generate_test_data_time(
     nyears=5, start_year=1979, frequency="D", calendar="noleap"
 )
+
 dset9 = generate_test_data_time(
     nyears=5, start_year=1979, frequency="D", calendar="standard"
 )
@@ -267,7 +269,7 @@ def test_annual_cycle_2():
     result = util.annual_cycle(util.monthly_average(dset9))
     assert len(result.time) == 12
     result = result.sum()
-    assert np.allclose(result["var_a"], 30043.9981433)
+    assert np.allclose(result["var_a"], 30043.89217891)
     assert np.allclose(result["var_b"], 29993.37508877)
 
 
