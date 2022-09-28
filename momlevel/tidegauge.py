@@ -37,7 +37,7 @@ def extract_point(arr, row):
 
 
 def extract_tidegauge(
-    arr, xcoord="geolon", ycoord="geolat", df_loc=None, mask=None, threshold=None
+    arr, xcoord="geolon", ycoord="geolat", csv="us", mask=None, threshold=None
 ):
     """Function to extract tide gauge locations from an input array
 
@@ -54,8 +54,9 @@ def extract_tidegauge(
         x-coordinate name or object
     ycoord : xarray.core.dataarray.DataArray or str
         y-coordinate name or object
-    df_loc : None, optional
-        DataFrame object containing rows of tide gauge locations
+    csv : str, path-like, optional
+        Options are "us", "global", or a path to local csv file,
+        by default "us"
     mask : xarray.core.dataarray.DataArray, optional
         Wet mask on model grid (1=ocean, 0=land)
     threshold : float, optional
@@ -107,11 +108,15 @@ def extract_tidegauge(
 
     # Get pd.DataFrame of target locations. This DataFrame must contain columns
     # named `name`, `lat`, and `lon`
-    if df_loc is None:
-        df_loc = pd.read_csv(
-            pkgr.resource_filename("momlevel", "resources/us_tide_gauges.csv")
-        )
-        df_loc = df_loc.rename(columns={"PSMSL_site": "name"})
+    if csv == "us":
+        csv = pkgr.resource_filename("momlevel", "resources/us_tide_gauges.csv")
+    elif csv == "global":
+        csv = pkgr.resource_filename("momlevel", "resources/global_tide_gauges.csv")
+    else:
+        assert os.path.exists(csv)
+
+    df_loc = pd.read_csv(csv)
+    df_loc = df_loc.rename(columns={"PSMSL_site": "name"})
 
     # Call the geolocate function
     df_mapped = geolocate_points(
