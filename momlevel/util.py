@@ -229,6 +229,7 @@ def geolocate_points(
     rad_earth=6.378e03,
     loc_coords=("lat", "lon"),
     apply_mask=True,
+    disable_warning=True,
 ):
     """Function to map a set of real-world locations to model grid points
 
@@ -262,6 +263,12 @@ def geolocate_points(
         Only consider valid model points based on the values of the `mask`
         column in `df_model`.  If `mask` == 1, it is considered a valid
         point. By default, True
+    disable_warning : bool, optional
+        Disable warnings when a requested point cannot be mapped. This
+        option is set to True by default as requesting tide gauge locations
+        for regional model configurations can yield numerous message.
+        Enabling the warnings may be useful in some cases, however.
+        By default, True
 
     Returns
     -------
@@ -303,6 +310,16 @@ def geolocate_points(
     # Locate the nearest model point for each location; convert to km
     df2["distance"], df2["mod_index"] = ball.query(df2[["yrad", "xrad"]].values, k=1)
     df2["distance"] = df2["distance"] * rad_earth
+
+    if not disable_warning:
+        df_missing = df2[df2["distance"] >= threshold]
+        if len(df_missing) > 0:
+            for _, row in df_missing.iterrows():
+                warnings.warn(
+                    f"Unable to map site name: {row['name']} "
+                    + f"with distance {row['distance']} greater "
+                    + f"than threshold of {threshold}"
+                )
 
     # Filter by distance if requested
     df2 = df2[df2["distance"] <= threshold] if threshold is not None else df2
