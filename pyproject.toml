@@ -1,0 +1,65 @@
+[build-system]
+requires = [ "setuptools>=41", "wheel", "setuptools-git-versioning"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "momlevel"
+description = "Tools to diagnose sea level in the MOM Ocean Model"
+dynamic = ["version"]
+authors = [
+    {name = "John Krasting", email="john.krasting@noaa.gov"}
+]
+license = {file = "LICENSE.txt"}
+readme = "README.md"
+requires-python = ">=3.7"
+keywords = ["oceanography", "sealevel", "sea-level", "slr", "mom", "mom6", "model", "ocean"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "License :: Public Domain",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+]
+dependencies = [
+    "nc-time-axis",
+    "netcdf4",
+    "numpy >=1.21.0",
+    "scikit-learn >=1.0.1",
+    "xarray >=0.20.0",
+    "xgcm",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+]
+
+[project.urls]
+homepage = "https://github.com/jkrasting/momlevel"
+documentation = "https://momlevel.readthedocs.io"
+repository = "https://github.com/jkrasting/momlevel"
+
+[tool.setuptools.packages.find]
+where = ["momlevel"]
+
+[tool.setuptools-git-versioning]
+enabled = true
+template = "{tag}"
+dev_template = "{tag}"
+dirty_template = "{tag}"
+starting_version = "0.0.5" # this is a backup for pip <= 22.0 where git-versioning doesn't work
+
+[tool.dynamic]
+version = "placeholder" # this is a placeholder for the version pulled with git-versioning
+
+[tool.setuptools.package-data]
+momlevel = [
+    "resources/CM4_historical.nc",
+    "resources/NWA12_grid_dataframe.csv",
+    "resources/NWA12_sample_grid_data.nc",
+    "resources/geolocate_points_reference.csv",
+    "resources/us_tide_gauges.csv",
+    "resources/global_tide_gauges.csv",
+]
