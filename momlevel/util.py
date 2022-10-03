@@ -16,6 +16,7 @@ __all__ = [
     "get_pv_colormap",
     "get_xgcm_grid",
     "geolocate_points",
+    "linear_detrend",
     "monthly_average",
     "tile_nominal_coords",
     "validate_areacello",
@@ -415,6 +416,83 @@ def get_xgcm_grid(dset, coord_dict=None, symmetric=False):
             },
             boundary=None,
         )
+
+    return result
+
+
+def linear_detrend(xobj, dim="time", order=1, mode="remove"):
+    def _linear_detrend_array(arr, dim="time", order=1, mode="remove"):
+
+        # get a clean interpolation index for the requested dimension
+        interp_index = np.array(xr.core.missing.get_clean_interp_index(arr, dim))
+        interp_index = xr.DataArray(interp_index, coords={dim: arr[dim]})
+
+        # save the variable name for reassignment at the end
+        varname = arr.name
+
+        # perform the detrending and capture the slope and intercept
+        ds_poly = arr.polyfit(dim, order)
+        slope = ds_poly.polyfit_coefficients.sel(degree=1)
+        intercept = ds_poly.polyfit_coefficients.sel(degree=0)
+
+        # broadcast time against slope
+        # slope_2, time_2 = xr.broadcast(slope, interp_index)
+
+        # construct the fitted line
+        fit_x = slope * interp_index
+
+        if mode == "remove":
+            fit_x = fit_x + intercept
+        elif mode == "correct":
+            fit_x = fit_x
+        else:
+            raise ValueError(f"Unknown detrend mode '{mode}'")
+
+        # cast back as xarray.DataArray
+        fit_x = xr.DataArray(fit_x, coords={dim: arr[dim]})
+
+        # subtract the fitted line from the original array
+        result = arr - fit_x
+
+        # correct the name and attributes
+        result.attrs = arr.attrs
+        result.attrs[
+            "detrend_comment"
+        ] = f"detrended using momlevel (mode={mode}) with m={slope} and b={intercept}"
+        result = result.rename(varname)
+
+        return result
+
+    # case 1: input object is xarray.DataArray
+    if isinstance(xobj, xr.DataArray):
+        result = _linear_detrend_array(xobj, dim=dim, order=order, mode=mode)
+
+    # case 2: input object is xarray.Dataset
+    elif isinstance(xobj, xr.Dataset):
+
+        varlist = list(xobj.keys())
+
+        # quick sanity check
+        questionable_vars = ["time_bnds", "average_T1", "average_T2", "average_DT"]
+        if any(var in varlist for var in questionable_vars):
+            warnings.warn(
+                f"Incompatible variable detected. "
+                + f"Check your dataset for the following and remove: {questionable_vars}"
+            )
+
+        # setup dictionary to hold results
+        result = {}
+
+        # iterate over variables that contain the dimension in question
+        for var in varlist:
+            result[var] = (
+                _linear_detrend_array(xobj[var], dim=dim, order=order, mode=mode)
+                if dim in xobj[var].dims
+                else xobj[var]
+            )
+
+        # convert dict back to xarray.Dataset
+        result = xr.Dataset(result)
 
     return result
 
