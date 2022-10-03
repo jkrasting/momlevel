@@ -23,6 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
 ]
 dependencies = [
+    "importlib_metadata <5.0.0",
     "nc-time-axis",
     "netcdf4",
     "numpy >=1.21.0",

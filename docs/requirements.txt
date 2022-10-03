@@ -1,7 +1,9 @@
+importlib_metadata <5.0.0
 ipython
 jupyter
 jupyter-sphinx
 matplotlib
+nc-time-axis
 netcdf4
 numpy>=1.21.0
 pydata-sphinx-theme
