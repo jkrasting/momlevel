@@ -421,6 +421,36 @@ def get_xgcm_grid(dset, coord_dict=None, symmetric=False):
 
 
 def linear_detrend(xobj, dim="time", order=1, mode="remove"):
+    """Function to linearly detrend an xarray object
+
+    This function performs a linear de-trending of either an xarray DataArray
+    or Dataset. The function can either remove the linear mean and return
+    anomalies relative to the trend, or it can correct for a linear trend
+    while preserving the original magnitude of the input data.
+
+    This function can operate on a single timeseries as well as a
+    multi-dimensional array that contains a time dimension. In the case
+    of a multi-dimensional array, the trends are calculated independently
+    for each point.
+
+    Parameters
+    ----------
+    xobj : xarray.core.dataarray.DataArray or xarray.core.dataset.Dataset
+        Input xarray object
+    dim : str, optional
+        Name of coordinate for linear detrending, by default "time"
+    order : int, optional
+        Order of polynomial fit. Linear detrending defaults to "1"
+    mode : str, optional
+        Either "remove" the linear trend and return anomalies, or
+        "correct" for a drift and retain the original magnitude of
+        the input data, by default "remove"
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray or xarray.core.dataset.Dataset
+    """
+
     def _linear_detrend_array(arr, dim="time", order=1, mode="remove"):
 
         # get a clean interpolation index for the requested dimension
