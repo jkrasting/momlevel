@@ -43,7 +43,7 @@ documentation = "https://momlevel.readthedocs.io"
 repository = "https://github.com/jkrasting/momlevel"
 
 [tool.setuptools.packages.find]
-where = ["momlevel"]
+where = ["src"]
 
 [tool.setuptools-git-versioning]
 enabled = true
