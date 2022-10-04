@@ -1,5 +1,6 @@
 """ tidegauge.py - tide gauge tools for momlevel """
 
+import os
 import pandas as pd
 import pkg_resources as pkgr
 import xarray as xr
