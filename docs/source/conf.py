@@ -88,4 +88,4 @@ master_doc = 'index'
 
 #-- Build api
 from sphinx.ext.apidoc import main
-main(['-f', '-M', '-e', '-T', '../../momlevel', '-o', 'api' ])
+main(['-f', '-M', '-e', '-T', '../../src/momlevel', '-o', 'api' ])
