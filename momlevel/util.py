@@ -338,6 +338,7 @@ def geolocate_points(
 
 
 def get_pv_colormap():
+    """This function returns a colormap for potential vorticity"""
     colors = (
         ["#ffffff"]
         + ["#66ff00"] * 5
@@ -505,7 +506,7 @@ def linear_detrend(xobj, dim="time", order=1, mode="remove"):
         questionable_vars = ["time_bnds", "average_T1", "average_T2", "average_DT"]
         if any(var in varlist for var in questionable_vars):
             warnings.warn(
-                f"Incompatible variable detected. "
+                "Incompatible variable detected. "
                 + f"Check your dataset for the following and remove: {questionable_vars}"
             )
 
