@@ -471,12 +471,11 @@ def linear_detrend(xobj, dim="time", order=1, mode="remove"):
         # construct the fitted line
         fit_x = slope * interp_index
 
+        if mode not in ["remove", "correct"]:
+            raise ValueError(f"Unknown detrend mode '{mode}'")
+
         if mode == "remove":
             fit_x = fit_x + intercept
-        elif mode == "correct":
-            fit_x = fit_x
-        else:
-            raise ValueError(f"Unknown detrend mode '{mode}'")
 
         # cast back as xarray.DataArray
         fit_x = xr.DataArray(fit_x, coords={dim: arr[dim]})
