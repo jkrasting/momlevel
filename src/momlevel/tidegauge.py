@@ -38,7 +38,13 @@ def extract_point(arr, row):
 
 
 def extract_tidegauge(
-    arr, xcoord="geolon", ycoord="geolat", csv="us", mask=None, threshold=None
+    arr,
+    xcoord="geolon",
+    ycoord="geolat",
+    csv="us",
+    mask=None,
+    threshold=None,
+    disable_warning=True,
 ):
     """Function to extract tide gauge locations from an input array
 
@@ -64,6 +70,12 @@ def extract_tidegauge(
         Filter locations that are insufficiently close to a model
         grid point. A value of 1 to 1.5 of the model's nominal
         resolution is a suggested value, by default None
+    disable_warning : bool, optional
+        Disable warnings when a requested point cannot be mapped. This
+        option is set to True by default as requesting tide gauge locations
+        for regional model configurations can yield numerous message.
+        Enabling the warnings may be useful in some cases, however.
+        By default, True
 
     Returns
     -------
@@ -99,12 +111,7 @@ def extract_tidegauge(
 
     # Create pandas.DataFrame of model coordinate info
     df_model = pd.concat(
-        [
-            _xcoord.to_dataframe(),
-            _ycoord.to_dataframe(),
-            mask.to_dataframe(),
-        ],
-        axis=1,
+        [_xcoord.to_dataframe(), _ycoord.to_dataframe(), mask.to_dataframe(),], axis=1,
     )
 
     # Get pd.DataFrame of target locations. This DataFrame must contain columns
@@ -121,7 +128,11 @@ def extract_tidegauge(
 
     # Call the geolocate function
     df_mapped = geolocate_points(
-        df_model, df_loc, threshold=threshold, model_coords=(_ycoord.name, _xcoord.name)
+        df_model,
+        df_loc,
+        threshold=threshold,
+        model_coords=(_ycoord.name, _xcoord.name),
+        disable_warning=disable_warning,
     )
 
     # Add dim names back into data frame
