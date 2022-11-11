@@ -296,6 +296,9 @@ def geolocate_points(
     if apply_mask:
         df1 = df1[df1["mask"] == 1.0] if "mask" in df1.columns else df1
 
+    # Remove any duplicate coordinates from the model's dataframe
+    df1 = df1.loc[:, ~df1.columns.duplicated()].copy()
+
     # Convert degree coords to radians
     df1["xrad"] = np.deg2rad(df1[xcoord1])
     df1["yrad"] = np.deg2rad(df1[ycoord1])
