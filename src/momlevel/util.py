@@ -528,7 +528,6 @@ def linear_detrend(xobj, dim="time", order=1, mode="remove"):
         result = xr.Dataset(result)
 
     else:
-        result = None
         raise TypeError("Input must be xarray.DataArray or xarray.Dataset")
 
     return result
