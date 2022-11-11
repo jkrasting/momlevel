@@ -84,10 +84,10 @@ def test_calc_masso():
 
 def test_calc_volo_1():
     with pytest.raises(Exception):
-        result = derived.calc_volo(dset1.volcello)
+       _ = derived.calc_volo(dset1.volcello)
 
 
-def test_calc_volo_1():
+def test_calc_volo_2():
     volo = derived.calc_volo(dset1.volcello.isel(time=0))
     pytest.volo = volo
     assert np.allclose(volo, 125401.86252394)

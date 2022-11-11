@@ -15,7 +15,6 @@ from momlevel.test_data import (
     generate_test_data_uv,
 )
 
-from pandas.util.testing import assert_frame_equal
 
 
 def test_generate_daily_timeaxis():
