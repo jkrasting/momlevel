@@ -65,13 +65,9 @@ def spice(thetao, so):
     """
 
     # convert non-numpy arguments to numpy arrays if necessary
-    thetao = (
-        np.array([float(thetao)])
-        if isinstance(thetao, (float,int))
-        else thetao
-    )
+    thetao = np.array([float(thetao)]) if isinstance(thetao, (float, int)) else thetao
 
-    so = np.array([float(so)]) if isinstance(so, (float,int)) else so
+    so = np.array([float(so)]) if isinstance(so, (float, int)) else so
 
     thetao_shape = thetao.shape
     so_shape = so.shape
@@ -83,7 +79,7 @@ def spice(thetao, so):
     so = so.flatten()
 
     # expand terms
-    thetao = np.swapaxes(np.array([thetao ** x for x in range(0, 6)]), 0, 1)
+    thetao = np.swapaxes(np.array([thetao**x for x in range(0, 6)]), 0, 1)
     so = np.swapaxes(np.array([(so - 35.0) ** x for x in range(0, 5)]), 0, 1)
 
     # calculate spice

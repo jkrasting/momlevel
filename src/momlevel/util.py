@@ -140,7 +140,10 @@ def annual_cycle(xobj, tcoord="time", func="mean", time_axis_year=None):
         midyear = midyear.year
 
     bounds = xr.cftime_range(
-        f"{str(midyear).zfill(4)}-01-01", freq="MS", periods=13, calendar=calendar,
+        f"{str(midyear).zfill(4)}-01-01",
+        freq="MS",
+        periods=13,
+        calendar=calendar,
     )
 
     bounds = [
@@ -353,7 +356,10 @@ def get_pv_colormap():
     levels = (
         [0.0, 0.0001]
         + list(np.arange(1.0, 10.0, 1.0))
-        + [10.0, 15.0,]
+        + [
+            10.0,
+            15.0,
+        ]
         + list(np.arange(20.0, 100.0, 10.0))
         + list(np.arange(100.0, 200.0, 20.0))
         + list(np.arange(200.0, 500.0, 100.0))
@@ -563,7 +569,10 @@ def monthly_average(xobj, tcoord="time"):
         _ds = groups[grp].groupby(f"{tcoord}.month").mean(tcoord)
 
         bounds = xr.cftime_range(
-            f"{str(grp).zfill(4)}-01-01", freq="MS", periods=13, calendar=calendar,
+            f"{str(grp).zfill(4)}-01-01",
+            freq="MS",
+            periods=13,
+            calendar=calendar,
         )
 
         bounds = [

@@ -111,7 +111,12 @@ def extract_tidegauge(
 
     # Create pandas.DataFrame of model coordinate info
     df_model = pd.concat(
-        [_xcoord.to_dataframe(), _ycoord.to_dataframe(), mask.to_dataframe(),], axis=1,
+        [
+            _xcoord.to_dataframe(),
+            _ycoord.to_dataframe(),
+            mask.to_dataframe(),
+        ],
+        axis=1,
     )
 
     # Get pd.DataFrame of target locations. This DataFrame must contain columns
