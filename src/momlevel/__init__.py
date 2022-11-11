@@ -1,7 +1,7 @@
 """ momlevel - sea level routines for the MOM ocean model """
 
 import importlib.metadata as ilm
-    
+
 msg = ilm.metadata("momlevel")
 
 __name__ = msg["Name"]
