@@ -121,6 +121,10 @@ def steric(
     elif variant == "steric":
         thetao = dset["thetao"]
         so = dset["so"]
+    else:
+        thetao = None
+        so = None
+        raise ValueError(f"Unknown variant '{variant}' passed to `steric`")
 
     # calculate in situ density
     rho = calc_rho(thetao, so, pres, eos=equation_of_state)
