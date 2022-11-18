@@ -17,6 +17,7 @@ from . import eos
 from . import reference
 from . import spice
 from . import test_data
+from . import trend
 from . import util
 
 from .dynamic import inverse_barometer
