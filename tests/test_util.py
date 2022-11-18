@@ -16,7 +16,6 @@ from momlevel.test_data import (
 )
 
 
-
 def test_generate_daily_timeaxis():
     assert len(generate_daily_timeaxis()) == 730
     assert len(generate_daily_timeaxis(calendar="standard")) == 731
@@ -294,30 +293,3 @@ def test_annual_cycle_5():
     result = result.sum()
     assert np.allclose(result["var_a"], 28782.31507282)
     assert np.allclose(result["var_b"], 28742.60226595)
-
-
-def test_linear_detrend_1():
-    result = util.linear_detrend(dset8.var_a[:, 0, 0])
-    assert np.allclose(result.sum(), -6.05950845e-11)
-
-
-def test_linear_detrend_2():
-    result = util.linear_detrend(dset8.var_a[:, 0, 0], mode="correct")
-    assert np.allclose(result.sum(), 187044.59558497)
-
-
-def test_linear_detrend_3():
-    result = util.linear_detrend(dset8.var_a)
-    assert np.allclose(result.sum(), -1.26760824e-09)
-
-
-def test_linear_detrend_4():
-    result = util.linear_detrend(dset8.var_a, mode="correct")
-    assert np.allclose(result.sum(), 4583438.14742081)
-
-
-def test_linear_detrend_5():
-    dset_in = dset8.drop_vars(["time_bnds", "average_T1", "average_T2", "average_DT"])
-    result = util.linear_detrend(dset_in, mode="correct")
-    assert np.allclose(result.var_a.sum(), 4583438.14742081)
-    assert np.allclose(result.var_b.sum(), 4589810.41140568)
