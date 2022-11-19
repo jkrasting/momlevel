@@ -84,7 +84,7 @@ def test_calc_masso():
 
 def test_calc_volo_1():
     with pytest.raises(Exception):
-       _ = derived.calc_volo(dset1.volcello)
+        _ = derived.calc_volo(dset1.volcello)
 
 
 def test_calc_volo_2():
@@ -123,7 +123,7 @@ def test_calc_rossby_rd():
     wave_speed = derived.calc_wave_speed(n2, dz)
     coriolis = derived.calc_coriolis(dset1.geolat)
     rossby_rd = derived.calc_rossby_rd(wave_speed, coriolis)
-    rossby_rd = xr.where(xr.ufuncs.isinf(rossby_rd), np.nan, rossby_rd)
+    rossby_rd = xr.where(np.isinf(rossby_rd), np.nan, rossby_rd)
     assert np.allclose(rossby_rd.sum(), 11779400.69254739)
 
 
