@@ -8,6 +8,7 @@ import xgcm
 from sklearn.neighbors import BallTree
 
 from momlevel import eos
+from momlevel import trend
 
 __all__ = [
     "annual_average",
@@ -16,6 +17,7 @@ __all__ = [
     "get_pv_colormap",
     "get_xgcm_grid",
     "geolocate_points",
+    "linear_detrend",
     "monthly_average",
     "tile_nominal_coords",
     "validate_areacello",
@@ -724,3 +726,11 @@ def validate_tidegauge_data(arr, xcoord, ycoord, mask):
 
     if mask is not None:
         assert isinstance(mask, xr.DataArray), "mask be a DataArray object"
+
+
+def linear_detrend(*args, **kwargs):
+    warnings.warn(
+        "`util.linear_trend()` will be removed. "
+        + "Please use version in the new `momlevel.trend` module", DeprecationWarning, stacklevel=2
+    )
+    return trend.linear_detrend(*args, **kwargs)

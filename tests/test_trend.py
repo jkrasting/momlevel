@@ -1,5 +1,6 @@
 import numpy as np
 
+from momlevel import util
 from momlevel import trend
 from momlevel.test_data import (
     generate_test_data_time,
@@ -11,7 +12,7 @@ dset8 = generate_test_data_time(
 
 
 def test_linear_detrend_1():
-    result = trend.linear_detrend(dset8.var_a[:, 0, 0])
+    result = util.linear_detrend(dset8.var_a[:, 0, 0])
     assert np.allclose(result.sum(), -6.05950845e-11)
 
 
