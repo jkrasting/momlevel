@@ -63,6 +63,49 @@ def time_conversion_factor(src, dst, days_per_month=30.417, days_per_year=365.0)
     return ns_from[src] * ns_to[dst]
 
 
+def _linear_detrend_array(arr, dim="time", order=1, mode="remove"):
+    """Internal function to detrend an xarray.DataArray object"""
+
+    # get a clean interpolation index for the requested dimension
+    interp_index = np.array(xr.core.missing.get_clean_interp_index(arr, dim))
+    interp_index = xr.DataArray(interp_index, coords={dim: arr[dim]})
+
+    # save the variable name for reassignment at the end
+    varname = arr.name
+
+    # perform the detrending and capture the slope and intercept
+    ds_poly = arr.polyfit(dim, order)
+    slope = ds_poly.polyfit_coefficients.sel(degree=1)
+    intercept = ds_poly.polyfit_coefficients.sel(degree=0)
+
+    # broadcast time against slope
+    # slope_2, time_2 = xr.broadcast(slope, interp_index)
+
+    # construct the fitted line
+    fit_x = slope * interp_index
+
+    if mode not in ["remove", "correct"]:
+        raise ValueError(f"Unknown detrend mode '{mode}'")
+
+    if mode == "remove":
+        fit_x = fit_x + intercept
+
+    # cast back as xarray.DataArray
+    fit_x = xr.DataArray(fit_x, coords={dim: arr[dim]})
+
+    # subtract the fitted line from the original array
+    result = arr - fit_x
+
+    # correct the name and attributes
+    result.attrs = arr.attrs
+    result.attrs[
+        "detrend_comment"
+    ] = f"detrended using momlevel (mode={mode}) with m={slope} and b={intercept}"
+    result = result.rename(varname)
+
+    return result
+
+
 def linear_detrend(xobj, dim="time", order=1, mode="remove"):
     """Function to linearly detrend an xarray object
 
@@ -93,47 +136,6 @@ def linear_detrend(xobj, dim="time", order=1, mode="remove"):
     -------
     xarray.core.dataarray.DataArray or xarray.core.dataset.Dataset
     """
-
-    def _linear_detrend_array(arr, dim="time", order=1, mode="remove"):
-
-        # get a clean interpolation index for the requested dimension
-        interp_index = np.array(xr.core.missing.get_clean_interp_index(arr, dim))
-        interp_index = xr.DataArray(interp_index, coords={dim: arr[dim]})
-
-        # save the variable name for reassignment at the end
-        varname = arr.name
-
-        # perform the detrending and capture the slope and intercept
-        ds_poly = arr.polyfit(dim, order)
-        slope = ds_poly.polyfit_coefficients.sel(degree=1)
-        intercept = ds_poly.polyfit_coefficients.sel(degree=0)
-
-        # broadcast time against slope
-        # slope_2, time_2 = xr.broadcast(slope, interp_index)
-
-        # construct the fitted line
-        fit_x = slope * interp_index
-
-        if mode not in ["remove", "correct"]:
-            raise ValueError(f"Unknown detrend mode '{mode}'")
-
-        if mode == "remove":
-            fit_x = fit_x + intercept
-
-        # cast back as xarray.DataArray
-        fit_x = xr.DataArray(fit_x, coords={dim: arr[dim]})
-
-        # subtract the fitted line from the original array
-        result = arr - fit_x
-
-        # correct the name and attributes
-        result.attrs = arr.attrs
-        result.attrs[
-            "detrend_comment"
-        ] = f"detrended using momlevel (mode={mode}) with m={slope} and b={intercept}"
-        result = result.rename(varname)
-
-        return result
 
     # case 1: input object is xarray.DataArray
     if isinstance(xobj, xr.DataArray):
