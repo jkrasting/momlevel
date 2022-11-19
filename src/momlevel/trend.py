@@ -66,6 +66,17 @@ def time_conversion_factor(src, dst, days_per_month=30.417, days_per_year=365.0)
 def _linear_detrend_array(arr, dim="time", order=1, mode="remove"):
     """Internal function to detrend an xarray.DataArray object"""
 
+    # test input array to make sure it is supported
+    assert isinstance(
+        arr, xr.DataArray
+    ), "`_linear_detrend_array` only supports `xarray.DataArray` objects"
+
+    # only linear detrending is supported; interface designed so this could be
+    # make higher-order in the future
+    assert (
+        order == 1
+    ), "Only linear detrending (i.e. `order=1`) is supported in this version."
+
     # get a clean interpolation index for the requested dimension
     interp_index = np.array(xr.core.missing.get_clean_interp_index(arr, dim))
     interp_index = xr.DataArray(interp_index, coords={dim: arr[dim]})
