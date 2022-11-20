@@ -63,13 +63,13 @@ def time_conversion_factor(src, dst, days_per_month=30.417, days_per_year=365.0)
     return ns_from[src] * ns_to[dst]
 
 
-def _linear_detrend_array(arr, dim="time", order=1, mode="remove"):
+def _detrend_array(arr, dim="time", order=1, mode="remove"):
     """Internal function to detrend an xarray.DataArray object"""
 
     # test input array to make sure it is supported
     assert isinstance(
         arr, xr.DataArray
-    ), "`_linear_detrend_array` only supports `xarray.DataArray` objects"
+    ), "`_detrend_array` only supports `xarray.DataArray` objects"
 
     # only linear detrending is supported; interface designed so this could be
     # make higher-order in the future
@@ -150,7 +150,7 @@ def linear_detrend(xobj, dim="time", order=1, mode="remove"):
 
     # case 1: input object is xarray.DataArray
     if isinstance(xobj, xr.DataArray):
-        result = _linear_detrend_array(xobj, dim=dim, order=order, mode=mode)
+        result = _detrend_array(xobj, dim=dim, order=order, mode=mode)
 
     # case 2: input object is xarray.Dataset
     elif isinstance(xobj, xr.Dataset):
@@ -171,7 +171,7 @@ def linear_detrend(xobj, dim="time", order=1, mode="remove"):
         # iterate over variables that contain the dimension in question
         for var in varlist:
             result[var] = (
-                _linear_detrend_array(xobj[var], dim=dim, order=order, mode=mode)
+                _detrend_array(xobj[var], dim=dim, order=order, mode=mode)
                 if dim in xobj[var].dims
                 else xobj[var]
             )
