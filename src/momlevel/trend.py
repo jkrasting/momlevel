@@ -85,13 +85,10 @@ def _detrend_array(arr, dim="time", order=1, mode="remove"):
     # save the variable name for reassignment at the end
     varname = arr.name
 
-    # perform the detrending and capture the slope and intercept
-    ds_poly = arr.polyfit(dim, order)
-    slope = ds_poly.polyfit_coefficients.sel(degree=1)
-    intercept = ds_poly.polyfit_coefficients.sel(degree=0)
-
-    # broadcast time against slope
-    # slope_2, time_2 = xr.broadcast(slope, interp_index)
+    # Calculate the slope and intercept
+    ds_trend = calc_linear_trend(arr, dim=dim)
+    slope = ds_trend[f"{varname}_slope"]
+    intercept = ds_trend[f"{varname}_intercept"]
 
     # construct the fitted line
     fit_x = slope * interp_index
