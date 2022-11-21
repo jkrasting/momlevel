@@ -2,7 +2,6 @@
 
 import warnings
 
-import numpy as np
 import xarray as xr
 
 __all__ = [
