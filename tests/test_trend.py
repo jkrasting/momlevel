@@ -36,3 +36,11 @@ def test_linear_detrend_5():
     result = trend.linear_detrend(dset_in, mode="correct")
     assert np.allclose(result.var_a.sum(), 4583438.14742081)
     assert np.allclose(result.var_b.sum(), 4589810.41140568)
+
+
+def test_time_conversion_factor():
+    assert trend.time_conversion_factor("ns", "ns") == 1.0
+    assert trend.time_conversion_factor("yr", "day") == 365.0
+    assert trend.time_conversion_factor("day", "hr") == 24.0
+    assert trend.time_conversion_factor("day", "s") == 86400.0
+    assert np.allclose(trend.time_conversion_factor("mon", "day"),30.417)

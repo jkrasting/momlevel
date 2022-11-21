@@ -7,7 +7,60 @@ import xarray as xr
 
 __all__ = [
     "linear_detrend",
+    "time_conversion_factor",
 ]
+
+
+def time_conversion_factor(src, dst, days_per_month=30.417, days_per_year=365.0):
+    """Function that returns conversion factors for common time units.
+
+    This function returns a conversion factor for a source time unit to a
+    destination time unit. Time units are specified as string inputs.
+
+    Recognized units are "ns", "s", "min", "hr", "day", "mon" and "yr"
+
+    For conversions involving months, an average value of 30.417 days per
+    month is assumed but this value can be overridden with the `days_per_month`
+    optional argument. For conversions involving years, a value of 365 days
+    per year is the default but can be overridden at runtime with the
+    optional `days_per_year` argument.
+
+    Parameters
+    ----------
+    src : str
+        Source time unit string
+    dst : str
+        Destination time unit string
+    days_per_month : float, optional
+        Days per month, by default 30.417
+    days_per_year : float, optional
+        Days per year, by default 365.0
+
+    Returns
+    -------
+    float
+        Time conversion factor
+    """
+
+    # conversion factors t to nanoseconds
+    ns_from = {
+        "ns": 1.0,
+        "s": 1.0e9,
+        "min": 1.0e9 * 60.0,
+        "hr": 1.0e9 * 60.0 * 60.0,
+        "day": 1.0e9 * 60.0 * 60.0 * 24.0,
+        "mon": 1.0e9 * 60.0 * 60.0 * 24.0 * days_per_month,
+        "yr": 1.0e9 * 60.0 * 60.0 * 24.0 * days_per_year,
+    }
+
+    # conversion factors from nanoseconds to t
+    ns_to = {k: 1.0 / v for k, v in ns_from.items()}
+
+    # validate inputs
+    assert str(src) in ns_from.keys(), f"Source unit `{src}` not recognized"
+    assert str(dst) in ns_to.keys(), f"Destination unit `{dst}` not recognized"
+
+    return ns_from[src] * ns_to[dst]
 
 
 def linear_detrend(xobj, dim="time", order=1, mode="remove"):
