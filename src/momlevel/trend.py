@@ -6,6 +6,7 @@ import numpy as np
 import xarray as xr
 
 __all__ = [
+    "calc_linear_trend",
     "linear_detrend",
     "time_conversion_factor",
 ]
@@ -115,6 +116,85 @@ def _detrend_array(arr, dim="time", order=1, mode="remove"):
     result = result.rename(varname)
 
     return result
+
+
+def calc_linear_trend(arr, dim="time", time_units=None):
+    """Function to calculate the linear trend of a DataArray
+
+    This function calculates the linear trend of an xarray DataArray object.
+    The trend can be done along any array dimension, but this is most
+    commonly time. The function calls the Xarray's `polyfit` function
+    which uses NumPy's `polyfit` routine. The linear trend is defined as
+    `order=1` within these functions.
+
+    Xarray's internal clock is based on nanoseconds. The trend is returned
+    in units of "ns-1" by default. Alternative time units can be specified
+    and a conversion is performed. Recognized units are: "ns", "s", "min",
+    "hr", "day", "mon" and "yr"
+
+    Parameters
+    ----------
+    arr : xarray.core.dataarray.DataArray
+        Input array
+    dim : str, optional
+        Dimension for detrending operation, by default "time"
+    time_units : str, optional
+        Result time units, see above, by default None
+
+    Returns
+    -------
+    xarray.core.dataset.Dataset
+        Xarray Dataset with variable _slope and _intercept arrays
+    """
+
+    # Capture variable name
+    varname = arr.name
+
+    # test input array to make sure it is supported
+    assert isinstance(
+        arr, xr.DataArray
+    ), "`_detrend_array` only supports `xarray.DataArray` objects"
+
+    # Xarray's internal polyfit func, which in turn calls numpy
+    ds_poly = arr.polyfit(dim, 1)
+
+    # the slope
+    slope = ds_poly.polyfit_coefficients.sel(degree=1)
+    slope = slope.drop_vars(["degree"])
+    slope.attrs = arr.attrs
+    slope.attrs["comment"] = "Slope of linear trend"
+    slope = slope.rename(f"{varname}_slope")
+
+    # the intercept
+    intercept = ds_poly.polyfit_coefficients.sel(degree=0)
+    intercept = intercept.drop_vars(["degree"])
+    intercept.attrs = arr.attrs
+    intercept.attrs["comment"] = "Y-intercept of linear trend"
+    intercept = intercept.rename(f"{varname}_intercept")
+
+    # determine slope units
+    time_indexes = [xr.coding.cftimeindex.CFTimeIndex]
+    if any([isinstance(arr.indexes[dim], x) for x in time_indexes]):
+        time_units = "ns" if time_units is None else time_units
+
+        # get existing units string if it exists
+        if "units" in slope.attrs.keys():
+            _units = slope.attrs["units"] + " "
+        else:
+            _units = ""
+        _units = f"{_units} {time_units}-1"
+
+        # time unit conversion factor
+        factor = 1.0 / time_conversion_factor("ns", time_units)
+
+        # apply scaling factor and modify units attribute
+        slope = (slope * factor).assign_attrs(slope.attrs)
+        slope.attrs["units"] = _units
+
+    # Return a dataset with results
+    dsout = xr.Dataset({f"{varname}_slope": slope, f"{varname}_intercept": intercept})
+
+    return dsout
 
 
 def linear_detrend(xobj, dim="time", order=1, mode="remove"):
