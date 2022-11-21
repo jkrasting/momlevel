@@ -6,10 +6,97 @@ import numpy as np
 import xarray as xr
 
 __all__ = [
+    "broadcast_trend",
     "calc_linear_trend",
     "linear_detrend",
     "time_conversion_factor",
 ]
+
+
+def broadcast_trend(slope, dim_arr):
+    """Function to broadcast a trend along a dimension
+
+    This function broadcasts a trend against a dimension to obtain a
+    fitted line, e.g. (m * x).
+
+    Parameters
+    ----------
+    slope : xarray.core.dataarray.DataArray
+        Array containing a slope. If this is a time trend, the units
+        of the trend will be inferred from the array's `units` atttribute
+        according to CF-convention. If the `units` attribute is missing,
+        Xarray's default time units of [ns] wil be assumed
+    dim_arr : xarray.core.dataarray.DataArray
+        Dimension array, e.g. time axis
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray
+        Broadcasted array, or fitted line
+    """
+
+    # Make sure slope is a single array
+    assert isinstance(slope, xr.DataArray), "Input `slope` must be a DataArray object"
+
+    # Make sure in the input dimension array is 1-dimensional
+    assert isinstance(
+        dim_arr, xr.DataArray
+    ), "Input `dim_arr` must be a DataArray object"
+    assert len(dim_arr.dims) == 1, "Input `dim_arr` can only have one dimension"
+
+    # Get the dimension name for reuse
+    dim_name = dim_arr.dims[0]
+
+    # Determine if we have time trend. If so, check the units and convert
+    # to nanoseconds if necessary
+    time_indexes = [xr.coding.cftimeindex.CFTimeIndex]
+    if any([isinstance(dim_arr.indexes[dim_name], x) for x in time_indexes]):
+
+        # Flag to throw default behavior warning
+        warn_time_units = False
+
+        # If slope/trend array has a units attribute, try to do something
+        if "units" in slope.attrs.keys():
+            units = slope.attrs["units"].split(" ")
+            units = [x.replace("-1", "") for x in units if "-1" in x]
+
+            # no acceptable units, issue default warning
+            if len(units) == 0:
+                warn_time_units = True
+
+            # one acceptable unit found, convert if necessary
+            elif len(units) == 1:
+                units = units[0]
+                if units != "ns":
+                    factor = 1.0 / time_conversion_factor(units, "ns")
+                    slope = slope * factor
+
+            # ill-defined case
+            else:
+                raise ValueError(
+                    f"Units attribute for slope `{slope.name}` "
+                    + f"has multiple time definitions: {slope.attrs['units']}. "
+                )
+
+        # If no units attribute present, throw default behavior warning
+        else:
+            warn_time_units = True
+
+        # Issue warning
+        if warn_time_units:
+            warnings.warn(
+                "Unable to determine time unit of slope/trend. "
+                + "Assuming Xarray's default nanoseconds (ns). "
+                + "To fix this, ensure that the slope array has a units "
+                + "attribute that describes the time units of the trend, "
+                + "e.g. `m yr-1`"
+            )
+
+    # Calculate a clean interpolation index
+    interp_index = xr.core.missing.get_clean_interp_index(dim_arr, dim_name)
+    interp_index = xr.DataArray(interp_index, coords={dim_name: dim_arr[dim_name]})
+
+    return slope * interp_index
 
 
 def time_conversion_factor(src, dst, days_per_month=30.417, days_per_year=365.0):

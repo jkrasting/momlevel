@@ -54,9 +54,23 @@ def test_calc_linear_trend_1():
     assert result.var_a_slope.units == " ns-1"
 
 
-def test_calc_linear_trend_1():
+def test_calc_linear_trend_2():
     dset_in = dset8.drop_vars(["time_bnds", "average_T1", "average_T2", "average_DT"])
     result = trend.calc_linear_trend(dset_in.var_a, time_units="yr")
     assert np.allclose(result.var_a_slope.sum(), -0.68277139)
     assert np.allclose(result.var_a_intercept.sum(), 2511.47295749)
     assert result.var_a_slope.units == " yr-1"
+
+
+def test_broadcast_trend_1():
+    dset_in = dset8.drop_vars(["time_bnds", "average_T1", "average_T2", "average_DT"])
+    slope = trend.calc_linear_trend(dset_in.var_a)
+    result = trend.broadcast_trend(slope.var_a_slope,dset_in.time)
+    assert np.allclose(result.sum(),-14329.66462312)
+
+
+def test_broadcast_trend_2():
+    dset_in = dset8.drop_vars(["time_bnds", "average_T1", "average_T2", "average_DT"])
+    slope = trend.calc_linear_trend(dset_in.var_a, time_units="yr")
+    result = trend.broadcast_trend(slope.var_a_slope,dset_in.time)
+    assert np.allclose(result.sum(),-14329.66462312)
