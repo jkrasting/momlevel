@@ -165,10 +165,6 @@ def _detrend_array(arr, dim="time", order=1, mode="remove"):
         order == 1
     ), "Only linear detrending (i.e. `order=1`) is supported in this version."
 
-    # get a clean interpolation index for the requested dimension
-    interp_index = np.array(xr.core.missing.get_clean_interp_index(arr, dim))
-    interp_index = xr.DataArray(interp_index, coords={dim: arr[dim]})
-
     # save the variable name for reassignment at the end
     varname = arr.name
 
@@ -178,7 +174,7 @@ def _detrend_array(arr, dim="time", order=1, mode="remove"):
     intercept = ds_trend[f"{varname}_intercept"]
 
     # construct the fitted line
-    fit_x = slope * interp_index
+    fit_x = broadcast_trend(slope, arr[dim])
 
     if mode not in ["remove", "correct"]:
         raise ValueError(f"Unknown detrend mode '{mode}'")
