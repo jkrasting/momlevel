@@ -60,7 +60,7 @@ Quick Install
 To install from Anaconda:
 
 .. parsed-literal::
-   conda install -c krasting momlevel
+   conda install -c conda-forge momlevel
 
 To install from PyPi:
 
