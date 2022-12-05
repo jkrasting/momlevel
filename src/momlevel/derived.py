@@ -246,12 +246,15 @@ def calc_rel_vort(dset, varname_map=None, coord_dict=None, symmetric=False):
     return relvort
 
 
-def calc_dz(levels, interfaces, depth, fraction=False):
+def calc_dz(levels, interfaces, depth, top=0.0, bottom=None, fraction=False):
     """Function to calculate dz that accounts for partial bottom cells
 
     This function uses the 2-dimensional bathymetry and the vertical
     coordinate levels and interfaces to calculate a 3-dimensional
     dz field that properly accounts for partial bottom cells.
+
+    A specific depth range and be provided using the `top` and `bottom`
+    arguments to request dz over a specified depth range.
 
     Parameters
     ----------
@@ -261,6 +264,12 @@ def calc_dz(levels, interfaces, depth, fraction=False):
         Vertical coordinate cell interfaces (1-dimensional)
     depth : xarray.core.dataarray.DataArray
         Bathymetry field in same units as coordinate (2-dimensional)
+    top : float
+        Upper bound if a specific depth range is requested.
+        Must be in the same units as `depth`, by default 0.0
+    bottom : float
+        Lower bound if a specific depth range is requested.
+        Must be in the same units as `depth`, by default None
     fraction : bool
         If True, return fraction of cell. If False, return raw dz,
         by default False
@@ -285,6 +294,9 @@ def calc_dz(levels, interfaces, depth, fraction=False):
     # fill missing values with zero
     depth = depth.fillna(0.0)
 
+    # use bottom boundary if depth range is specified
+    depth = np.minimum(depth, bottom) if bottom is not None else depth
+
     # broadcast to common dimensions
     ztop = xr.DataArray(interfaces[0:-1].values, coords=levels.coords)
     _, ztop = xr.broadcast(depth, ztop)
@@ -295,11 +307,15 @@ def calc_dz(levels, interfaces, depth, fraction=False):
     # get pure dz
     dz_field = zbot - ztop
 
-    # calculate partial cell
+    # calculate partial cell based on bottom boundary
     part = depth - ztop
     part = xr.where(part < 0.0, 0.0, part)
-
     result = np.minimum(part, dz_field)
+
+    # calculate partial cell based on top boundary
+    part = zbot - top
+    part = xr.where(part < 0.0, 0.0, part)
+    result = np.minimum(part, result)
 
     if fraction:
         _dz_field = xr.where(dz_field == 0, np.nan, dz_field)
