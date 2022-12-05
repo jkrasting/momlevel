@@ -731,6 +731,8 @@ def validate_tidegauge_data(arr, xcoord, ycoord, mask):
 def linear_detrend(*args, **kwargs):
     warnings.warn(
         "`util.linear_trend()` will be removed. "
-        + "Please use version in the new `momlevel.trend` module", DeprecationWarning, stacklevel=2
+        + "Please use version in the new `momlevel.trend` module",
+        DeprecationWarning,
+        stacklevel=2,
     )
     return trend.linear_detrend(*args, **kwargs)

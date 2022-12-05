@@ -68,7 +68,7 @@ def extract_tidegauge(
         Wet mask on model grid (1=ocean, 0=land)
     threshold : float, optional
         Filter locations that are insufficiently close to a model
-        grid point. The threshold value represents the maximum allowed distance in km. 
+        grid point. The threshold value represents the maximum allowed distance in km.
         A value of 1 to 1.5 of the model's nominal resolution is a suggested value,
         by default None
     disable_warning : bool, optional
