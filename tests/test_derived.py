@@ -40,6 +40,11 @@ def test_calc_dz_3():
         derived.calc_dz(dset2.z_l, dset2.z_i, deptho)
 
 
+def test_calc_dz_4():
+    dz = derived.calc_dz(dset2.z_l, dset2.z_i, dset2.deptho, top=12., bottom=33.)
+    assert np.allclose(dz.sum(), 441.84425447)
+
+
 def test_calc_rho():
     rho = derived.calc_rho(dset1.thetao, dset1.so, dset1.z_l * 1.0e4, eos="Wright")
     pytest.rho = rho
