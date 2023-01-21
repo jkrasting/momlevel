@@ -76,18 +76,63 @@ def generate_test_data(start_year=1981, nyears=0, calendar="noleap", seed=123):
         )
     else:
         dset = xr.Dataset()
-        dset["time"] = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims=("time"))
+        dset["time"] = xr.DataArray(
+            [1.0, 2.0, 3.0, 4.0, 5.0],
+            dims=("time"),
+            attrs={
+                "long_name": "time",
+                "cartesian_axis": "T",
+                "calendar_type": calendar,
+                "bounds": "time_bnds",
+            },
+        )
 
     ntimes = len(dset["time"])
 
     dset["z_i"] = xr.DataArray(
-        np.array([0.0, 5.0, 15.0, 185.0, 1815.0, 6185.0]), dims=("z_i")
+        np.array([0.0, 5.0, 15.0, 185.0, 1815.0, 6185.0]),
+        dims=("z_i"),
+        attrs={
+            "long_name": "Depth at interface",
+            "units": "meters",
+            "axis": "Z",
+            "positive": "down",
+        },
     )
+
     dset["z_l"] = xr.DataArray(
-        np.array([2.5, 10.0, 100.0, 1000.0, 4000.0]), dims=("z_l")
+        np.array([2.5, 10.0, 100.0, 1000.0, 4000.0]),
+        dims=("z_l"),
+        attrs={
+            "long_name": "Depth at cell center",
+            "units": "meters",
+            "axis": "Z",
+            "positive": "down",
+            "edges": "z_i",
+        },
     )
-    dset["xh"] = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims="xh")
-    dset["yh"] = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims="yh")
+
+    dset["xh"] = xr.DataArray(
+        [1.0, 2.0, 3.0, 4.0, 5.0],
+        dims="xh",
+        attrs={
+            "long_name": "h point nominal longitude",
+            "units": "degrees_east",
+            "axis": "X",
+            "cartesian_axis": "X",
+        },
+    )
+
+    dset["yh"] = xr.DataArray(
+        [1.0, 2.0, 3.0, 4.0, 5.0],
+        dims="yh",
+        attrs={
+            "long_name": "h point nominal latitude",
+            "units": "degrees_north",
+            "axis": "Y",
+            "cartesian_axis": "Y",
+        },
+    )
 
     # geolon / geolat as cell centers
     lon = np.arange(0.0, 361.0, 72.0)
@@ -97,20 +142,63 @@ def generate_test_data(start_year=1981, nyears=0, calendar="noleap", seed=123):
     lat = [(lat[x] + lat[x + 1]) / 2.0 for x in range(0, len(lat) - 1)]
     geolon, geolat = np.meshgrid(lon, lat)
 
-    dset["geolon"] = xr.DataArray(geolon, dims=("yh", "xh"))
-    dset["geolat"] = xr.DataArray(geolat, dims=("yh", "xh"))
+    dset["geolon"] = xr.DataArray(
+        geolon,
+        dims=("yh", "xh"),
+        attrs={
+            "long_name": "Longitude of tracer (T) points",
+            "units": "degrees_east",
+            "cell_methods": "time: point",
+        },
+    )
+
+    dset["geolat"] = xr.DataArray(
+        geolat,
+        dims=("yh", "xh"),
+        attrs={
+            "long_name": "Latitude of tracer (T) points",
+            "units": "degrees_north",
+            "cell_methods": "time: point",
+        },
+    )
 
     dset["thetao"] = xr.DataArray(
         np.random.default_rng(seed).normal(15.0, 5.0, (ntimes, 5, 5, 5)),
         dims=({"time": dset.time, "z_l": dset.z_l, "yh": dset.yh, "xh": dset.xh}),
+        attrs={
+            "long_name": "Sea Water Potential Temperature",
+            "units": "degC",
+            "cell_measures": "volume: volcello area: areacello",
+            "standard_name": "sea_water_potential_temperature",
+            "cell_methods": "area:mean z_l:mean yh:mean xh:mean time: mean",
+            "time_avg_info": "average_T1,average_T2,average_DT",
+        },
     )
+
     dset["so"] = xr.DataArray(
         np.random.default_rng(seed).normal(35.0, 1.5, (ntimes, 5, 5, 5)),
         dims=({"time": dset.time, "z_l": dset.z_l, "yh": dset.yh, "xh": dset.xh}),
+        attrs={
+            "long_name": "Sea Water Salinity",
+            "units": "psu",
+            "cell_measures": "volume: volcello area: areacello",
+            "standard_name": "sea_water_salinity",
+            "cell_methods": "area:mean z_l:mean yh:mean xh:mean time: mean",
+            "time_avg_info": "average_T1,average_T2,average_DT",
+        },
     )
+
     dset["volcello"] = xr.DataArray(
         np.random.default_rng(seed).normal(1000.0, 100.0, (ntimes, 5, 5, 5)),
         dims=({"time": dset.time, "z_l": dset.z_l, "yh": dset.yh, "xh": dset.xh}),
+        attrs={
+            "long_name": "Ocean grid-cell volume",
+            "units": "m3",
+            "cell_measures": "area: areacello",
+            "standard_name": "ocean_volume",
+            "cell_methods": "area:sum z_l:sum yh:sum xh:sum time: mean",
+            "time_avg_info": "average_T1,average_T2,average_DT",
+        },
     )
 
     deptho = np.array(
@@ -123,7 +211,17 @@ def generate_test_data(start_year=1981, nyears=0, calendar="noleap", seed=123):
         ]
     )
 
-    dset["deptho"] = xr.DataArray(deptho, dims=({"yh": dset.yh, "xh": dset.xh}))
+    dset["deptho"] = xr.DataArray(
+        deptho,
+        dims=({"yh": dset.yh, "xh": dset.xh}),
+        attrs={
+            "long_name": "Sea Floor Depth",
+            "units": "m",
+            "cell_methods": "area:mean yh:mean xh:mean time: point",
+            "cell_measures": "area: areacello",
+            "standard_name": "sea_floor_depth_below_geoid",
+        },
+    )
 
     areacello = xr.DataArray(
         np.random.default_rng(seed).normal(100.0, 10.0, (5, 5)),
@@ -131,6 +229,12 @@ def generate_test_data(start_year=1981, nyears=0, calendar="noleap", seed=123):
     )
     areacello = areacello / areacello.sum()
     dset["areacello"] = areacello * 3.6111092e14
+    dset["areacello"].attrs = {
+        "long_name": "Ocean Grid-Cell Area",
+        "units": "m2",
+        "cell_methods": "area:sum yh:sum xh:sum time: point",
+        "standard_name": "cell_area",
+    }
 
     return dset
 
@@ -353,7 +457,16 @@ def generate_time_stub(start_year=1981, nyears=5, calendar="noleap", frequency="
     bnds = np.array([1, 2])
 
     time = [x[0] + (x[1] - x[0]) / 2 for x in time_bnds]
-    time = xr.DataArray(time, {"time": time})
+    time = xr.DataArray(
+        time,
+        {"time": time},
+        attrs={
+            "long_name": "time",
+            "cartesian_axis": "T",
+            "calendar_type": calendar,
+            "bounds": "time_bnds",
+        },
+    )
 
     time_bnds = xr.DataArray(time_bnds, {"time": time, "bnds": bnds})
 
