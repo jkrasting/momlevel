@@ -70,6 +70,8 @@ def generate_test_data(start_year=1981, nyears=0, calendar="noleap", seed=123):
         ntimes x 5 x 5 x 5 point dataset for unit testing
     """
 
+    rng = np.random.default_rng(seed)
+
     if nyears >= 1:
         dset = generate_time_stub(
             start_year=start_year, nyears=nyears, calendar=calendar
@@ -77,8 +79,6 @@ def generate_test_data(start_year=1981, nyears=0, calendar="noleap", seed=123):
     else:
         dset = xr.Dataset()
         dset["time"] = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims=("time"))
-
-    np.random.seed(seed)
 
     ntimes = len(dset["time"])
 
@@ -103,32 +103,32 @@ def generate_test_data(start_year=1981, nyears=0, calendar="noleap", seed=123):
     dset["geolat"] = xr.DataArray(geolat, dims=("yh", "xh"))
 
     dset["thetao"] = xr.DataArray(
-        np.random.normal(15.0, 5.0, (ntimes, 5, 5, 5)),
+        rng.normal(15.0, 5.0, (ntimes, 5, 5, 5)),
         dims=({"time": dset.time, "z_l": dset.z_l, "yh": dset.yh, "xh": dset.xh}),
     )
     dset["so"] = xr.DataArray(
-        np.random.normal(35.0, 1.5, (ntimes, 5, 5, 5)),
+        rng.normal(35.0, 1.5, (ntimes, 5, 5, 5)),
         dims=({"time": dset.time, "z_l": dset.z_l, "yh": dset.yh, "xh": dset.xh}),
     )
     dset["volcello"] = xr.DataArray(
-        np.random.normal(1000.0, 100.0, (ntimes, 5, 5, 5)),
+        rng.normal(1000.0, 100.0, (ntimes, 5, 5, 5)),
         dims=({"time": dset.time, "z_l": dset.z_l, "yh": dset.yh, "xh": dset.xh}),
     )
 
     deptho = np.array(
         [
-            np.random.uniform(0.0, 5.0, 5),
-            np.random.uniform(0.0, 15.0, 5),
-            np.random.uniform(0.0, 185.0, 5),
-            np.random.uniform(0.0, 1815.0, 5),
-            np.random.uniform(0.0, 6185.0, 5),
+            rng.uniform(0.0, 5.0, 5),
+            rng.uniform(0.0, 15.0, 5),
+            rng.uniform(0.0, 185.0, 5),
+            rng.uniform(0.0, 1815.0, 5),
+            rng.uniform(0.0, 6185.0, 5),
         ]
     )
 
     dset["deptho"] = xr.DataArray(deptho, dims=({"yh": dset.yh, "xh": dset.xh}))
 
     areacello = xr.DataArray(
-        np.random.normal(100.0, 10.0, (5, 5)), dims=({"yh": dset.yh, "xh": dset.xh})
+        rng.normal(100.0, 10.0, (5, 5)), dims=({"yh": dset.yh, "xh": dset.xh})
     )
     areacello = areacello / areacello.sum()
     dset["areacello"] = areacello * 3.6111092e14
@@ -148,15 +148,16 @@ def generate_test_data_dz(seed=123):
     -------
     xarray.core.dataset.Dataset
     """
+
+    rng = np.random.default_rng(seed)
+
     xh = np.arange(1, 6)
     xh = xr.DataArray(xh, dims=("xh"))
 
     yh = np.arange(10, 60, 10)
     yh = xr.DataArray(yh, dims=("yh"))
 
-    np.random.seed(seed)
-
-    deptho = np.random.uniform(0.0, 100.0, (5, 5))
+    deptho = rng.uniform(0.0, 100.0, (5, 5))
     deptho[2, 2] = np.nan
     deptho[2, 3] = np.nan
     deptho = xr.DataArray(deptho, coords=(yh, xh))
@@ -196,6 +197,9 @@ def generate_test_data_time(
         Dataset of sample time series data
     """
 
+    rng = np.random.default_rng(seed)
+    rng2 = np.random.default_rng(seed * 2)
+
     dset = generate_time_stub(
         start_year=start_year, nyears=nyears, calendar=calendar, frequency=frequency
     )
@@ -206,17 +210,15 @@ def generate_test_data_time(
     lat = [1.0, 2.0, 3.0, 4.0, 5.0]
     lat = xr.DataArray(lat, {"lat": lat})
 
-    np.random.seed(seed)
     dset["var_a"] = xr.DataArray(
-        np.random.normal(100, 20, (len(dset.time), 5, 5)),
+        rng.normal(100, 20, (len(dset.time), 5, 5)),
         dims=(("time", "lat", "lon")),
         coords={"time": dset.time, "lat": lat, "lon": lon},
         attrs={"first_attribute": "foo", "second_attribute": "bar"},
     )
 
-    np.random.seed(seed * 2)
     dset["var_b"] = xr.DataArray(
-        np.random.normal(100, 20, (len(dset.time), 5, 5)),
+        rng2.normal(100, 20, (len(dset.time), 5, 5)),
         dims=(("time", "lat", "lon")),
         coords={"time": dset.time, "lat": lat, "lon": lon},
         attrs={"first_attribute": "foo", "second_attribute": "bar"},
@@ -253,6 +255,8 @@ def generate_test_data_uv(start_year=1981, nyears=0, calendar="noleap", seed=123
         ntimes x 5 x 5 x 5 point dataset for unit testing
     """
 
+    rng = np.random.default_rng(seed)
+
     if nyears >= 1:
         dset = generate_time_stub(
             start_year=start_year, nyears=nyears, calendar=calendar
@@ -260,8 +264,6 @@ def generate_test_data_uv(start_year=1981, nyears=0, calendar="noleap", seed=123
     else:
         dset = xr.Dataset()
         dset["time"] = xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims=("time"))
-
-    np.random.seed(seed)
 
     ntimes = len(dset["time"])
 
@@ -277,11 +279,11 @@ def generate_test_data_uv(start_year=1981, nyears=0, calendar="noleap", seed=123
     dset["yq"] = xr.DataArray([1.5, 2.5, 3.5, 4.5, 5.5], dims="yq")
 
     dset["uo"] = xr.DataArray(
-        np.random.normal(0.0061, 0.08, (ntimes, 5, 5, 5)),
+        rng.normal(0.0061, 0.08, (ntimes, 5, 5, 5)),
         dims=({"time": dset.time, "z_l": dset.z_l, "yh": dset.yh, "xq": dset.xq}),
     )
     dset["vo"] = xr.DataArray(
-        np.random.normal(0.00077, 0.04, (ntimes, 5, 5, 5)),
+        rng.normal(0.00077, 0.04, (ntimes, 5, 5, 5)),
         dims=({"time": dset.time, "z_l": dset.z_l, "yq": dset.yq, "xh": dset.xh}),
     )
     dset["dxCu"] = xr.DataArray(
@@ -293,11 +295,11 @@ def generate_test_data_uv(start_year=1981, nyears=0, calendar="noleap", seed=123
         dims=({"yq": dset.yq, "xh": dset.xh}),
     )
     dset["Coriolis"] = xr.DataArray(
-        np.random.normal(1.21e-5, 0.00011, (5, 5)),
+        rng.normal(1.21e-5, 0.00011, (5, 5)),
         dims=({"yq": dset.yq, "xq": dset.xq}),
     )
     areacello_bu = xr.DataArray(
-        np.random.normal(100.0, 10.0, (5, 5)), dims=({"yq": dset.yh, "xq": dset.xh})
+        rng.normal(100.0, 10.0, (5, 5)), dims=({"yq": dset.yh, "xq": dset.xh})
     )
     areacello_bu = areacello_bu / areacello_bu.sum()
     dset["areacello_bu"] = areacello_bu * 3.6111092e14
