@@ -7,4 +7,4 @@ dset = generate_test_data().isel(z_l=0)
 
 def test_inverse_barometer():
     result = inverse_barometer(dset.thetao,dset.so,101325.)
-    assert np.allclose(result.sum(),-1260.12620941)
+    assert np.allclose(result.sum(),-1259.68985418)
