@@ -8,12 +8,13 @@ import pkg_resources as pkgr
 from momlevel import reference
 from momlevel import util
 from momlevel.test_data import (
-    generate_daily_timeaxis,
     generate_test_data,
     generate_test_data_dz,
     generate_test_data_time,
     generate_test_data_uv,
 )
+
+from momlevel.test_data.time import generate_daily_timeaxis
 
 
 def test_generate_daily_timeaxis():
