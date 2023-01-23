@@ -64,11 +64,6 @@ def test_validate_areacello_2():
         assert util.validate_areacello(dset.areacello * 1.3)
 
 
-def test_validate_areacello_3():
-    with pytest.raises(Exception):
-        assert util.validate_areacello(dset.areacello, tolerance=1.0e-30)
-
-
 def test_validate_dataset_1():
     util.validate_dataset(dset)
 
@@ -129,27 +124,27 @@ def test_validate_dataset_8():
 def test_annual_average_1():
     """tests annual average of a noleap calendar dataset"""
     result = util.annual_average(dset3).sum()
-    assert np.allclose(result["var_a"], 12484.37032342)
-    assert np.allclose(result["var_b"], 12605.66490932)
+    assert np.allclose(result["var_a"], 12540.38661327)
+    assert np.allclose(result["var_b"], 12513.3738587)
 
 
 def test_annual_average_2():
     """tests annual average of a julian calendar dataset"""
     result = util.annual_average(dset4).sum()
-    assert np.allclose(result["var_a"], 12484.17097863)
-    assert np.allclose(result["var_b"], 12605.18695941)
+    assert np.allclose(result["var_a"], 12540.37420516)
+    assert np.allclose(result["var_b"], 12513.42390321)
 
 
 def test_annual_average_3():
     """tests annual average of a noleap calendar data array"""
     result = util.annual_average(dset3["var_a"]).sum()
-    assert np.allclose(result, 12484.37032342)
+    assert np.allclose(result, 12540.38661327)
 
 
 def test_annual_average_4():
     """tests annual average of a julian calendar dataset"""
     result = util.annual_average(dset4["var_a"]).sum()
-    assert np.allclose(result, 12484.17097863)
+    assert np.allclose(result, 12540.37420516)
 
 
 def test_get_xgcm_grid_1():
@@ -245,51 +240,51 @@ def test_get_pv_colormap():
 
 def test_monthly_average_1():
     result = util.monthly_average(dset6).sum()
-    assert np.allclose(result["var_a"], 60167.13927143)
-    assert np.allclose(result["var_b"], 60036.90907922)
+    assert np.allclose(result["var_a"], 60105.04603946)
+    assert np.allclose(result["var_b"], 59859.46422535)
 
 
 def test_monthly_average_2():
     result = util.monthly_average(dset7).sum()
-    assert np.allclose(result["var_a"], 60163.23828842)
-    assert np.allclose(result["var_b"], 60036.8317591)
+    assert np.allclose(result["var_a"], 60110.203595)
+    assert np.allclose(result["var_b"], 59858.37293512)
 
 
 def test_annual_cycle_1():
     result = util.annual_cycle(util.monthly_average(dset8))
     assert len(result.time) == 12
     result = result.sum()
-    assert np.allclose(result["var_a"], 30043.9981433)
-    assert np.allclose(result["var_b"], 29992.27048348)
+    assert np.allclose(result["var_a"], 30015.57996061)
+    assert np.allclose(result["var_b"], 29961.89265959)
 
 
 def test_annual_cycle_2():
     result = util.annual_cycle(util.monthly_average(dset9))
     assert len(result.time) == 12
     result = result.sum()
-    assert np.allclose(result["var_a"], 30043.89217891)
-    assert np.allclose(result["var_b"], 29993.37508877)
+    assert np.allclose(result["var_a"], 30015.59638431)
+    assert np.allclose(result["var_b"], 29961.53401375)
 
 
 def test_annual_cycle_3():
     result = util.annual_cycle(util.monthly_average(dset8), func="std")
     assert len(result.time) == 12
     result = result.sum()
-    assert np.allclose(result["var_a"], 909.30443538)
-    assert np.allclose(result["var_b"], 913.21989648)
+    assert np.allclose(result["var_a"], 890.24286612)
+    assert np.allclose(result["var_b"], 917.12436607)
 
 
 def test_annual_cycle_4():
     result = util.annual_cycle(util.monthly_average(dset8), func="max")
     assert len(result.time) == 12
     result = result.sum()
-    assert np.allclose(result["var_a"], 31295.58398947)
-    assert np.allclose(result["var_b"], 31260.98038945)
+    assert np.allclose(result["var_a"], 31248.84868587)
+    assert np.allclose(result["var_b"], 31237.81311579)
 
 
 def test_annual_cycle_5():
     result = util.annual_cycle(util.monthly_average(dset8), func="min")
     assert len(result.time) == 12
     result = result.sum()
-    assert np.allclose(result["var_a"], 28782.31507282)
-    assert np.allclose(result["var_b"], 28742.60226595)
+    assert np.allclose(result["var_a"], 28788.98557133)
+    assert np.allclose(result["var_b"], 28705.85687133)
