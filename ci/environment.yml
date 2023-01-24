@@ -6,9 +6,9 @@ dependencies:
   - python
   - nc-time-axis
   - netcdf4
-  - numpy<=1.23.4
+  - numpy
   - pip
   - pytest
-  - scikit-learn>=1.0.1
-  - xarray>=0.20.0
+  - scikit-learn
+  - xarray
   - xgcm
