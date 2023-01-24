@@ -44,6 +44,21 @@ def test_xyfields_2():
     assert dask.base.tokenize(result) == "493fc761a28c3ddfc9f099d51ffbf3d1"
 
 
+def test_xyfields_3():
+    result = test_data.tripolar.horizontal.xy_fields(point="u")
+    assert dask.base.tokenize(result) == "5edb2afe09a24b2cea9f1fc3dd44ffdc"
+
+
+def test_xyfields_4():
+    result = test_data.tripolar.horizontal.xy_fields(point="v")
+    assert dask.base.tokenize(result) == "4cef08a13817d9d709b9bd56a7eb4d6c"
+
+
+def test_xyfields_5():
+    result = test_data.tripolar.horizontal.xy_fields(point="c")
+    assert dask.base.tokenize(result) == "5dc886d24e974816a885e6233b161564"
+
+
 def test_zlevel_fields():
     result = test_data.tripolar.vertical.zlevel_fields(include_deptho=False)
     assert dask.base.tokenize(result) == "c7e26f7ba195dd02a154bb561a0f00e7"
@@ -56,7 +71,7 @@ def test_zlevel_fields_2():
 
 def test_generate_test_data():
     result = test_data.generate_test_data()
-    assert dask.base.tokenize(result) == "3a03152e9c749e616e4e8ffdd8eaa417"
+    assert dask.base.tokenize(result) == "28fa8924ffa66c9b6bac92d0cd6cf5ee"
 
 
 def test_generate_test_data_dz():
@@ -66,4 +81,4 @@ def test_generate_test_data_dz():
 
 def test_generate_test_data_uv():
     result = test_data.generate_test_data_uv()
-    assert dask.base.tokenize(result) == "641cdd0109b2b00fdcbe2a16b8edf70d"
+    assert dask.base.tokenize(result) == "41f0a919b8030ab4b56b7121fdaace42"
