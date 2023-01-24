@@ -1,5 +1,4 @@
 import dask
-import pytest
 
 dask.config.set({"tokenize.ensure-deterministic": True})
 
