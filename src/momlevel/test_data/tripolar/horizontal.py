@@ -1,19 +1,33 @@
-""" test_data - module for generating test data """
+""" horizontal.py - module for generating xy test data """
 
-import datetime as dt
-
-import cftime
 import numpy as np
 import xarray as xr
 
 __all__ = [
-    "generate_test_data",
-    "generate_test_data_dz",
-    "generate_test_data_uv",
+    "xy_fields",
 ]
 
 
-def xy_fields(dset=None, point="h"):
+def xy_fields(dset=None, seed=123):
+    """Function to set up a simple x-y grid
+
+    This function sets up a simple horizontal grid with dimensions and axes
+    in the style of MOM6. Returns dimensions, geolat/geolon coordinates,
+    and a matching areacello field.
+
+    Parameters
+    ----------
+    dset : xarray.core.dataset.Dataset, optional
+        Existing dataset to append grid. If not specified, an empty
+        dataset is initialized. By default, None
+    seed : int, optional
+        Random number generator seed. By default, 123
+
+    Returns
+    -------
+    xarray.core.dataset.Dataset
+        ntimes x 5 x 5 x 5 point dataset for unit testing
+    """
 
     dset = xr.Dataset if dset is None else dset
 
@@ -68,7 +82,7 @@ def xy_fields(dset=None, point="h"):
     )
 
     areacello = xr.DataArray(
-        np.random.normal(100.0, 10.0, (5, 5)),
+        np.random.default_rng(seed).normal(100.0, 10.0, (5, 5)),
         dims=({"yh": dset.yh, "xh": dset.xh}),
     )
     areacello = areacello / areacello.sum()

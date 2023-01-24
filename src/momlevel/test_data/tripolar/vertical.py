@@ -1,16 +1,35 @@
-""" test_data - module for generating test data """
+""" vertical.py - module for generating z-level test data """
 
 import numpy as np
 import xarray as xr
-
-from .horizontal import xy_fields
 
 __all__ = [
     "zlevel_fields",
 ]
 
 
-def zlevel_fields(dset=None, include_deptho=True):
+def zlevel_fields(dset=None, include_deptho=True, seed=123):
+    """Function to set up a simple z-level vertical grid
+
+    This function sets up a simple vertical grid with dimensions and axes
+    in the style of MOM6. Returns depth level centers and interfaces
+    and an optional matching deptho field.
+
+    Parameters
+    ----------
+    dset : xarray.core.dataset.Dataset, optional
+        Existing dataset to append grid. If not specified, an empty
+        dataset is initialized. By default, None
+    include_deptho : bool, optional
+        Include a matching deptho field. By default, True
+    seed : int, optional
+        Random number generator seed. By default, 123
+
+    Returns
+    -------
+    xarray.core.dataset.Dataset
+        5-vertical-level dataset for unit testing
+    """
     dset = xr.Dataset() if dset is None else dset
 
     dset["z_i"] = xr.DataArray(
@@ -38,11 +57,11 @@ def zlevel_fields(dset=None, include_deptho=True):
 
     deptho = np.array(
         [
-            np.random.uniform(0.0, 5.0, 5),
-            np.random.uniform(0.0, 15.0, 5),
-            np.random.uniform(0.0, 185.0, 5),
-            np.random.uniform(0.0, 1815.0, 5),
-            np.random.uniform(0.0, 6185.0, 5),
+            np.random.default_rng(seed).uniform(0.0, 5.0, 5),
+            np.random.default_rng(seed).uniform(0.0, 15.0, 5),
+            np.random.default_rng(seed).uniform(0.0, 185.0, 5),
+            np.random.default_rng(seed).uniform(0.0, 1815.0, 5),
+            np.random.default_rng(seed).uniform(0.0, 6185.0, 5),
         ]
     )
 
