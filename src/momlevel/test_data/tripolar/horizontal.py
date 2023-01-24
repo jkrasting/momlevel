@@ -8,7 +8,7 @@ __all__ = [
 ]
 
 
-def xy_fields(dset=None, seed=123):
+def xy_fields(dset=None, point="h", seed=123):
     """Function to set up a simple x-y grid
 
     This function sets up a simple horizontal grid with dimensions and axes
@@ -20,6 +20,9 @@ def xy_fields(dset=None, seed=123):
     dset : xarray.core.dataset.Dataset, optional
         Existing dataset to append grid. If not specified, an empty
         dataset is initialized. By default, None
+    point : str, optional
+        Staggered grid point of either "h", "u", "v", or "c".
+        By default, "h"
     seed : int, optional
         Random number generator seed. By default, 123
 
@@ -31,29 +34,52 @@ def xy_fields(dset=None, seed=123):
 
     dset = xr.Dataset() if dset is None else dset
 
-    dset["xh"] = xr.DataArray(
+    point_dict = {
+        "h": ("xh", "yh", "geolon", "geolat", "areacello", "tracer (T)"),
+        "u": (
+            "xq",
+            "yh",
+            "geolon_u",
+            "geolat_u",
+            "areacello_cu",
+            "zonal velocity (Cu)",
+        ),
+        "v": (
+            "xh",
+            "yq",
+            "geolon_v",
+            "geolat_v",
+            "areacello_cv",
+            "meridional velocity (Cv)",
+        ),
+        "c": ("xq", "yq", "geolon_c", "geolat_c", "areacello_bu", "corner (Bu)"),
+    }
+
+    attrs = point_dict[point]
+
+    dset[attrs[0]] = xr.DataArray(
         [1.0, 2.0, 3.0, 4.0, 5.0],
-        dims="xh",
+        dims=attrs[0],
         attrs={
-            "long_name": "h point nominal longitude",
+            "long_name": f"{attrs[0][-1]} point nominal longitude",
             "units": "degrees_east",
             "axis": "X",
             "cartesian_axis": "X",
         },
     )
 
-    dset["yh"] = xr.DataArray(
+    dset[attrs[1]] = xr.DataArray(
         [1.0, 2.0, 3.0, 4.0, 5.0],
-        dims="yh",
+        dims=attrs[1],
         attrs={
-            "long_name": "h point nominal latitude",
+            "long_name": f"{attrs[1][-1]} point nominal latitude",
             "units": "degrees_north",
             "axis": "Y",
             "cartesian_axis": "Y",
         },
     )
 
-    # geolon / geolat as cell centers
+    # geolon / geolat
     lon = np.arange(0.0, 361.0, 72.0)
     lat = np.arange(-90.0, 91.0, 36.0)
 
@@ -61,21 +87,21 @@ def xy_fields(dset=None, seed=123):
     lat = [(lat[x] + lat[x + 1]) / 2.0 for x in range(0, len(lat) - 1)]
     geolon, geolat = np.meshgrid(lon, lat)
 
-    dset["geolon"] = xr.DataArray(
+    dset[attrs[2]] = xr.DataArray(
         geolon,
-        dims=("yh", "xh"),
+        dims=(attrs[1], attrs[0]),
         attrs={
-            "long_name": "Longitude of tracer (T) points",
+            "long_name": f"Longitude of {attrs[5]} points",
             "units": "degrees_east",
             "cell_methods": "time: point",
         },
     )
 
-    dset["geolat"] = xr.DataArray(
+    dset[attrs[3]] = xr.DataArray(
         geolat,
-        dims=("yh", "xh"),
+        dims=(attrs[1], attrs[0]),
         attrs={
-            "long_name": "Latitude of tracer (T) points",
+            "long_name": f"Latitude of {attrs[5]} points",
             "units": "degrees_north",
             "cell_methods": "time: point",
         },
@@ -83,14 +109,14 @@ def xy_fields(dset=None, seed=123):
 
     areacello = xr.DataArray(
         np.random.default_rng(seed).normal(100.0, 10.0, (5, 5)),
-        dims=({"yh": dset.yh, "xh": dset.xh}),
+        dims=({attrs[1]: dset[attrs[1]], attrs[0]: dset[attrs[0]]}),
     )
     areacello = areacello / areacello.sum()
-    dset["areacello"] = areacello * 3.6111092e14
-    dset["areacello"].attrs = {
+    dset[attrs[4]] = areacello * 3.6111092e14
+    dset[attrs[4]].attrs = {
         "long_name": "Ocean Grid-Cell Area",
         "units": "m2",
-        "cell_methods": "area:sum yh:sum xh:sum time: point",
+        "cell_methods": f"area:sum {attrs[1]}:sum {attrs[0]}:sum time: point",
         "standard_name": "cell_area",
     }
     return dset
