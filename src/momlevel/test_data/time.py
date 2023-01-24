@@ -1,4 +1,4 @@
-""" test_data - module for generating test data """
+""" time.py - time module for generating test data """
 
 import datetime as dt
 
@@ -8,7 +8,6 @@ import xarray as xr
 
 __all__ = [
     "generate_daily_timeaxis",
-    "generate_test_data_time",
     "generate_time_stub",
 ]
 
