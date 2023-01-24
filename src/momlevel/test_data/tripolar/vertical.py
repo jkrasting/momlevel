@@ -3,6 +3,8 @@
 import numpy as np
 import xarray as xr
 
+from .horizontal import xy_fields
+
 __all__ = [
     "zlevel_fields",
 ]
@@ -55,17 +57,20 @@ def zlevel_fields(dset=None, include_deptho=True, seed=123):
         },
     )
 
-    deptho = np.array(
-        [
-            np.random.default_rng(seed).uniform(0.0, 5.0, 5),
-            np.random.default_rng(seed).uniform(0.0, 15.0, 5),
-            np.random.default_rng(seed).uniform(0.0, 185.0, 5),
-            np.random.default_rng(seed).uniform(0.0, 1815.0, 5),
-            np.random.default_rng(seed).uniform(0.0, 6185.0, 5),
-        ]
-    )
-
     if include_deptho:
+        deptho = np.array(
+            [
+                np.random.default_rng(seed).uniform(0.0, 5.0, 5),
+                np.random.default_rng(seed).uniform(0.0, 15.0, 5),
+                np.random.default_rng(seed).uniform(0.0, 185.0, 5),
+                np.random.default_rng(seed).uniform(0.0, 1815.0, 5),
+                np.random.default_rng(seed).uniform(0.0, 6185.0, 5),
+            ]
+        )
+
+        if ("yh" not in dset.dims) or ("xh" not in dset.dims):
+            dset = xy_fields(dset)
+
         dset["deptho"] = xr.DataArray(
             deptho,
             dims=({"yh": dset.yh, "xh": dset.xh}),

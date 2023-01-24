@@ -29,7 +29,7 @@ def xy_fields(dset=None, seed=123):
         ntimes x 5 x 5 x 5 point dataset for unit testing
     """
 
-    dset = xr.Dataset if dset is None else dset
+    dset = xr.Dataset() if dset is None else dset
 
     dset["xh"] = xr.DataArray(
         [1.0, 2.0, 3.0, 4.0, 5.0],
