@@ -71,7 +71,7 @@ def test_zlevel_fields_2():
 
 def test_generate_test_data():
     result = test_data.generate_test_data()
-    assert dask.base.tokenize(result) == "28fa8924ffa66c9b6bac92d0cd6cf5ee"
+    assert dask.base.tokenize(result) == "3a03152e9c749e616e4e8ffdd8eaa417"
 
 
 def test_generate_test_data_dz():
@@ -81,4 +81,4 @@ def test_generate_test_data_dz():
 
 def test_generate_test_data_uv():
     result = test_data.generate_test_data_uv()
-    assert dask.base.tokenize(result) == "41f0a919b8030ab4b56b7121fdaace42"
+    assert dask.base.tokenize(result) == "641cdd0109b2b00fdcbe2a16b8edf70d"
