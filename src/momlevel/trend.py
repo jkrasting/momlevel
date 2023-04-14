@@ -342,3 +342,91 @@ def linear_detrend(xobj, dim="time", order=1, mode="remove"):
         raise TypeError("Input must be xarray.DataArray or xarray.Dataset")
 
     return result
+
+def seasonal_model(da_timeseries, tcoord="time", return_model=False):
+    """Function to calculate a seasonal cycle in a time series
+    This function creates a modelled time series that includes
+    a linear trend and annual and semi-annual harmonics
+
+    f(time) = b + m * time + c1 * sin(2*pi*time/year) + ...
+        c2 * cos(2*pi*time/year) + c3 * sin(4*pi*time/year) + ...
+        c4 * cos(4*pi*time/year) + residual
+
+    Parameters
+    ----------
+    da_timeseries : xarray.core.dataarray.DataArray
+        A time series in a DataArray format, which can be of
+        arbitrary dimensionality
+    tcoord : str, optional
+        Name of the time coordinate, if present, by default "time"
+    Returns
+    -------
+    residuals : xarray.core.dataarray.DataArray
+        Residuals from modelled fit
+    seasonal_model : xarray.core.dataarray.DataArray
+        Modelled seasonal cycle of time series (returned only if return_model=True)
+    """
+    # PREPROCESSING
+    # Here we find the non-time coordinates for our dataset and create a hashable
+    # so that the model can be expanded to an arbitrary number of dimensions
+    # If coordinates are empty we drop them
+    da_timeseries = da_timeseries.reset_coords(drop=True)
+    coords = [x for x in da_timeseries.coords if x != tcoord]
+    coords = tuple(coords)
+    
+    coords_dict = {}
+    for i in range(len(coords)):
+        coords_dict[coords[i]] = da_timeseries[f"{coords[i]}"]
+    hashable_coords = {key: tuple(val.values) for key, val in coords_dict.items()}
+
+    # From here we use the same code provided by John, extended to multiple dimensions
+    time_dec = (
+        da_timeseries[tcoord].dt.year
+        + (da_timeseries[tcoord].dt.dayofyear - 1 + da_timeseries[tcoord].dt.hour / 24) / 365
+    )
+
+    model = np.array(
+        [np.ones(len(time_dec))]
+        + [time_dec - np.mean(time_dec)]
+        + [np.sin(2 * np.pi * time_dec)]
+        + [np.cos(2 * np.pi * time_dec)]
+        + [np.sin(4 * np.pi * time_dec)]
+        + [np.cos(4 * np.pi * time_dec)]
+    )
+
+    pmodel = np.linalg.pinv(model)
+
+    model_da = xr.DataArray(
+        model,
+        dims=["coeff", "time"],
+        coords={"coeff": np.arange(1, 7, 1), "time": da_timeseries[tcoord]},
+    )
+    model_da = model_da.expand_dims(dim=hashable_coords)
+
+    pmodel_da = xr.DataArray(
+        pmodel,
+        dims=["time", "coeff"],
+        coords={"coeff": np.arange(1, 7, 1), "time": da_timeseries[tcoord]},
+    )
+    pmodel_da = pmodel_da.expand_dims(dim=hashable_coords)
+
+    mcoeff = pmodel_da.dot(da_timeseries, dims="time")
+
+    seasonal_model = model_da.dot(mcoeff, dims="coeff")
+    seasonal_model.attrs = {
+        "standard_name": "???",
+        "long_name": "???",
+        "units": "???",
+    }
+
+    residuals = da_timeseries - seasonal_model
+    residuals.attrs = {
+        "standard_name": "???",
+        "long_name": "???",
+        "units": "???",
+    }
+
+    if return_model == True:
+        return seasonal_model, residuals
+    else:
+        return residuals
