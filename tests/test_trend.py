@@ -74,3 +74,9 @@ def test_broadcast_trend_2():
     slope = trend.calc_linear_trend(dset_in.var_a, time_units="yr")
     result = trend.broadcast_trend(slope.var_a_slope, dset_in.time)
     assert np.allclose(result.sum(), -32176.80429455)
+
+
+def test_seasonal_model():
+    dset_in = dset8.drop_vars(["time_bnds", "average_T1", "average_T2", "average_DT"])
+    result = trend.seasonal_model(dset_in.var_a[:,0,0])
+    assert np.allclose(result.sum(), 7.79891707e-11)
