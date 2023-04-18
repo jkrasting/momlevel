@@ -1,7 +1,7 @@
 """ trend.py - utilities for working with trends """
 
 import warnings
-
+import numpy as np
 import xarray as xr
 
 __all__ = [
@@ -50,7 +50,6 @@ def broadcast_trend(slope, dim_arr):
     # to nanoseconds if necessary
     time_indexes = [xr.coding.cftimeindex.CFTimeIndex]
     if any([isinstance(dim_arr.indexes[dim_name], x) for x in time_indexes]):
-
         # Flag to throw default behavior warning
         warn_time_units = False
 
@@ -313,7 +312,6 @@ def linear_detrend(xobj, dim="time", order=1, mode="remove"):
 
     # case 2: input object is xarray.Dataset
     elif isinstance(xobj, xr.Dataset):
-
         varlist = list(xobj.keys())
 
         # quick sanity check
@@ -342,6 +340,7 @@ def linear_detrend(xobj, dim="time", order=1, mode="remove"):
         raise TypeError("Input must be xarray.DataArray or xarray.Dataset")
 
     return result
+
 
 def seasonal_model(da_timeseries, tcoord="time", return_model=False):
     """Function to calculate a seasonal cycle in a time series
@@ -373,7 +372,7 @@ def seasonal_model(da_timeseries, tcoord="time", return_model=False):
     da_timeseries = da_timeseries.reset_coords(drop=True)
     coords = [x for x in da_timeseries.coords if x != tcoord]
     coords = tuple(coords)
-    
+
     coords_dict = {}
     for i in range(len(coords)):
         coords_dict[coords[i]] = da_timeseries[f"{coords[i]}"]
@@ -382,7 +381,8 @@ def seasonal_model(da_timeseries, tcoord="time", return_model=False):
     # From here we use the same code provided by John, extended to multiple dimensions
     time_dec = (
         da_timeseries[tcoord].dt.year
-        + (da_timeseries[tcoord].dt.dayofyear - 1 + da_timeseries[tcoord].dt.hour / 24) / 365
+        + (da_timeseries[tcoord].dt.dayofyear - 1 + da_timeseries[tcoord].dt.hour / 24)
+        / 365
     )
 
     model = np.array(
@@ -413,19 +413,34 @@ def seasonal_model(da_timeseries, tcoord="time", return_model=False):
     mcoeff = pmodel_da.dot(da_timeseries, dims="time")
 
     seasonal_model = model_da.dot(mcoeff, dims="coeff")
-    seasonal_model.attrs = {
-        "standard_name": "???",
-        "long_name": "???",
-        "units": "???",
-    }
-
     residuals = da_timeseries - seasonal_model
-    residuals.attrs = {
-        "standard_name": "???",
-        "long_name": "???",
-        "units": "???",
-    }
 
+    if "standard_name" in da_timeseries.attrs.keys():
+        _standard_name_m = da_timeseries.attrs["standard_name"] + "_smodel"
+        _standard_name_r = da_timeseries.attrs["standard_name"] + "_sresid"
+    else:
+        _standard_name_m = "smodel"
+        _standard_name_r = "sresid"
+
+    if "long_name" in da_timeseries.attrs.keys():
+        _long_name_m = "Seasonal model, " + da_timeseries.attrs["long_name"]
+        _long_name_r = "Seasonal residuals, " + da_timeseries.attrs["long_name"]
+    else:
+        _long_name_m = "Seasonal model"
+        _long_name_r = "Seasonal residuals"
+
+    if "units" in da_timeseries.attrs.keys():
+        _units = da_timeseries.attrs["units"]
+    else:
+        _units = ""
+
+    seasonal_model.attrs["standard_name"] = _standard_name_m
+    seasonal_model.attrs["long_name"] = _long_name_m
+    seasonal_model.attrs["units"] = _units
+
+    residuals.attrs["standard_name"] = _standard_name_r
+    residuals.attrs["long_name"] = _long_name_r
+    residuals.attrs["units"] = _units
     if return_model == True:
         return seasonal_model, residuals
     else:
