@@ -9,6 +9,7 @@ __all__ = [
     "calc_linear_trend",
     "linear_detrend",
     "time_conversion_factor",
+    "seasonal_model",
 ]
 
 
@@ -374,8 +375,8 @@ def seasonal_model(da_timeseries, tcoord="time", return_model=False):
     coords = tuple(coords)
 
     coords_dict = {}
-    for i in range(len(coords)):
-        coords_dict[coords[i]] = da_timeseries[f"{coords[i]}"]
+    for coord_name in coords:
+        coords_dict[coord_name] = da_timeseries[f"{coord_name}"]
     hashable_coords = {key: tuple(val.values) for key, val in coords_dict.items()}
 
     # From here we use the same code provided by John, extended to multiple dimensions
@@ -412,8 +413,8 @@ def seasonal_model(da_timeseries, tcoord="time", return_model=False):
 
     mcoeff = pmodel_da.dot(da_timeseries, dims="time")
 
-    seasonal_model = model_da.dot(mcoeff, dims="coeff")
-    residuals = da_timeseries - seasonal_model
+    smodel = model_da.dot(mcoeff, dims="coeff")
+    residuals = da_timeseries - smodel
 
     if "standard_name" in da_timeseries.attrs.keys():
         _standard_name_m = da_timeseries.attrs["standard_name"] + "_smodel"
@@ -434,14 +435,13 @@ def seasonal_model(da_timeseries, tcoord="time", return_model=False):
     else:
         _units = ""
 
-    seasonal_model.attrs["standard_name"] = _standard_name_m
-    seasonal_model.attrs["long_name"] = _long_name_m
-    seasonal_model.attrs["units"] = _units
+    smodel.attrs["standard_name"] = _standard_name_m
+    smodel.attrs["long_name"] = _long_name_m
+    smodel.attrs["units"] = _units
 
     residuals.attrs["standard_name"] = _standard_name_r
     residuals.attrs["long_name"] = _long_name_r
     residuals.attrs["units"] = _units
-    if return_model == True:
-        return seasonal_model, residuals
-    else:
-        return residuals
+    if return_model:
+        return smodel, residuals
+    return residuals
