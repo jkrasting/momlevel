@@ -253,7 +253,7 @@ def calc_dz(levels, interfaces, depth, top=0.0, bottom=None, fraction=False):
     coordinate levels and interfaces to calculate a 3-dimensional
     dz field that properly accounts for partial bottom cells.
 
-    A specific depth range and be provided using the `top` and `bottom`
+    A specific depth range can be provided using the `top` and `bottom`
     arguments to request dz over a specified depth range.
 
     Parameters
