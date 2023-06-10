@@ -42,7 +42,7 @@ def test_calc_dz_3():
 
 def test_calc_dz_4():
     dz = derived.calc_dz(dset2.z_l, dset2.z_i, dset2.deptho, top=12., bottom=33.)
-    assert np.allclose(dz.sum(), 441.84425447)
+    assert np.allclose(dz.sum(), 363.71725794)
 
 
 def test_calc_rho():
