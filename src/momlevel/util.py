@@ -88,6 +88,12 @@ def annual_average(xobj, tcoord="time"):
         for var in list(result.variables):
             result[var].attrs = xobj[var].attrs if var in list(xobj.variables) else {}
 
+    for coord in list(result.coords):
+        result[coord].attrs = xobj[coord].attrs if coord in list(xobj.coords) else {}
+
+    for dim in list(result.dims):
+        result[dim].attrs = xobj[dim].attrs if dim in list(xobj.dims) else {}
+
     result.attrs = xobj.attrs
 
     return result
