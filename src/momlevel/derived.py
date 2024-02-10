@@ -487,7 +487,14 @@ def calc_pdens(thetao, so, level=0.0, patm=101325, eos="Wright"):
 
 
 def calc_pv(
-    zeta, coriolis, n2, gravity=9.8, coord_dict=None, symmetric=False, units="m"
+    zeta,
+    coriolis,
+    n2,
+    gravity=9.8,
+    coord_dict=None,
+    symmetric=False,
+    units="m",
+    interp_n2=True,
 ):
     """Function to calculate ocean potential vorticity
 
@@ -507,6 +514,9 @@ def calc_pv(
     coord_dict : :obj:`dict`, optional
         Dictionary of xgcm coordinate name mappings, if different from
         the MOM6 default values, by default None
+    interp_n2 : bool, optional
+        Interpolate N^2 to the corner points. Set to `False` to calculate
+        potential vorticity on the cell centers, by default True
     symmetric : bool
         Flag denoting symmetric grid, by default False
     units : str, optional
@@ -525,12 +535,13 @@ def calc_pv(
     calc_rel_vort : Calculate relative vorticity (zeta)
     """
 
-    # create an internal dataset for xgcm purposes
-    _dset = xr.Dataset({"zeta": zeta, "coriolis": coriolis, "n2": n2})
-    grid = util.get_xgcm_grid(_dset, coord_dict=coord_dict, symmetric=symmetric)
+    if interp_n2 is True:
+        # create an internal dataset for xgcm purposes
+        _dset = xr.Dataset({"zeta": zeta, "coriolis": coriolis, "n2": n2})
+        grid = util.get_xgcm_grid(_dset, coord_dict=coord_dict, symmetric=symmetric)
 
-    # interpolate N2 to the corner points
-    n2 = grid.interp(n2, axis=["X", "Y"], boundary="fill")
+        # interpolate N2 to the corner points
+        n2 = grid.interp(n2, axis=["X", "Y"], boundary="fill")
 
     # calculate potential vorticity
     swpotvort = (zeta + coriolis) * (n2 / gravity)
