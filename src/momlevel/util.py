@@ -19,6 +19,7 @@ __all__ = [
     "geolocate_points",
     "linear_detrend",
     "monthly_average",
+    "reset_encoding",
     "tile_nominal_coords",
     "validate_areacello",
     "validate_dataset",
@@ -489,6 +490,40 @@ def monthly_average(xobj, tcoord="time"):
     result = result.transpose(tcoord, ...)
 
     return result
+
+
+def reset_encoding(xobj, attrs=None):
+    """Function to reset encoding attributes on an xarray object
+
+    Parameters
+    ----------
+    xobj : xarray.core.dataset.Dataset or xarray.core.dataarray.DataArray
+        Input xarray object
+    attrs : list, optional
+        Attributes to reset, by default None
+
+    Returns
+    -------
+    xarray.core.dataset.Dataset or xarray.core.dataarray.DataArray
+        Xarray object without encoding attributes
+    """
+
+    attrs = ["chunks", "preferred_chunks"] if attrs is None else attrs
+
+    if isinstance(xobj, xr.DataArray):
+        for attr in attrs:
+            xobj.encoding.pop(attr, None)
+
+    elif isinstance(xobj, xr.Dataset):
+        for attr in attrs:
+            xobj.encoding.pop(attr, None)
+            for var in xobj.variables:
+                xobj[var].encoding.pop(attr, None)
+
+    else:
+        raise ValueError("xobj must be an xarray Dataset or DataArray")
+
+    return xobj
 
 
 def tile_nominal_coords(xcoord, ycoord, warn=True):
