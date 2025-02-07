@@ -20,6 +20,7 @@ __all__ = [
     "linear_detrend",
     "monthly_average",
     "reset_encoding",
+    "standard_grid_cell_area",
     "tile_nominal_coords",
     "validate_areacello",
     "validate_dataset",
@@ -524,6 +525,78 @@ def reset_encoding(xobj, attrs=None):
         raise ValueError("xobj must be an xarray Dataset or DataArray")
 
     return xobj
+
+
+def standard_grid_cell_area(lat, lon, r_earth=6371.0e3):
+    """Function to calculate the cell area for a standard spherical grid
+
+    This function calculates the cell area for a uniform standard grid
+    based on the center values of the grid.
+
+    Parameters
+    ----------
+    lat : xarray.core.dataarray.DataArray or np.ndarray
+        1-D array of latitude coordinates in degrees
+    lon : xarray.core.dataarray.DataArray or np.ndarray
+        1-D array of latitude coordinates in degrees
+    r_earth : float, optional
+        Radius of the Earth in meters
+
+    Returns
+    -------
+    xarray.core.dataarray.DataArray or np.ndarray
+        Array of cell area values in m^2
+    """
+
+    if isinstance(lat, xr.DataArray):
+        lat_da = lat
+        lat = lat.values
+    else:
+        lat_da = None
+        lat = np.array(lat)
+
+    if isinstance(lon, xr.DataArray):
+        lon_da = lon
+        lon = lon.values
+    else:
+        lon_da = None
+        lon = np.array(lon)
+
+    # Infer the uniform grid spacing in degrees
+    d_lat = lat[1] - lat[0]
+    d_lon = lon[1] - lon[0]
+
+    # Create coordinate arrays
+    lat0 = lat[:, None] - d_lat / 2  # Add dimension for broadcasting
+    lat1 = lat[:, None] + d_lat / 2
+    lon0 = lon[None, :] - d_lon / 2
+    lon1 = lon[None, :] + d_lon / 2
+
+    # Compute area in one vectorized operation
+    area = (
+        (np.pi / 180.0)
+        * r_earth
+        * r_earth
+        * np.abs(np.sin(np.radians(lat0)) - np.sin(np.radians(lat1)))
+        * np.abs(lon0 - lon1)
+    )
+
+    if lat_da is not None and lon_da is not None:
+        lat_dim = lat_da.dims[0]
+        lon_dim = lon_da.dims[0]
+        area = xr.DataArray(
+            area,
+            dims=(lat_dim, lon_dim),
+            coords={lat_dim: lat_da.coords[lat_dim], lon_dim: lon_da.coords[lon_dim]},
+        )
+        area = area.rename("cell_area")
+        area.attrs = {
+            "long_name": "area of grid cell",
+            "standard_name": "cell_area",
+            "units": "m2",
+        }
+
+    return area
 
 
 def tile_nominal_coords(xcoord, ycoord, warn=True):
