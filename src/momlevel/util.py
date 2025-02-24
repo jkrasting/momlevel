@@ -11,6 +11,7 @@ from momlevel import eos
 from momlevel import trend
 
 __all__ = [
+    "alphabetize_dataset",
     "annual_average",
     "annual_cycle",
     "default_coords",
@@ -26,6 +27,23 @@ __all__ = [
     "validate_dataset",
     "validate_tidegauge_data",
 ]
+
+
+def alphabetize_dataset(ds):
+    """This function reorders the variables in an xarray dataset
+    according to alphabetical order
+
+    Parameters
+    ----------
+    ds : xarray.core.dataset.Dataset
+        Input xarray datset
+
+    Returns
+    -------
+    xarray.core.dataset.Dataset
+    """
+
+    return ds[sorted(ds.variables.keys())]
 
 
 def annual_average(xobj, tcoord="time"):
