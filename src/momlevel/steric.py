@@ -113,14 +113,32 @@ def steric(
 
     # determine which fields, if any, to hold fixed
     if variant == "thermosteric":
-        thetao = dset["thetao"]
-        so = reference["so"]
+        if "thetao" in dset:
+            thetao = dset["thetao"]
+        else:
+            thetao = dset["temp"]
+        if "so" in dset:
+            so = reference["so"]
+        else:
+            so = reference["salt"]
     elif variant == "halosteric":
-        thetao = reference["thetao"]
-        so = dset["so"]
+        if "thetao" in dset:
+            thetao = dset["thetao"]
+        else:
+            thetao = dset["temp"]
+        if "so" in dset:
+            so = reference["so"]
+        else:
+            so = reference["salt"]
     elif variant == "steric":
-        thetao = dset["thetao"]
-        so = dset["so"]
+        if "thetao" in dset:
+            thetao = dset["thetao"]
+        else:
+            thetao = dset["temp"]
+        if "so" in dset:
+            so = reference["so"]
+        else:
+            so = reference["salt"]
     else:
         raise ValueError(f"Unknown variant '{variant}' passed to `steric`")
 
