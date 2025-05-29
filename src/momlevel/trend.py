@@ -5,6 +5,7 @@ import cftime
 import numpy as np
 import xarray as xr
 
+from xarray.core.missing import get_clean_interp_index
 
 __all__ = [
     "broadcast_trend",
@@ -95,7 +96,7 @@ def broadcast_trend(slope, dim_arr):
             )
 
     # Calculate a clean interpolation index
-    interp_index = xr.core.missing.get_clean_interp_index(dim_arr, dim_name)
+    interp_index = get_clean_interp_index(dim_arr, dim_name)
     interp_index = xr.DataArray(interp_index, coords={dim_name: dim_arr[dim_name]})
 
     return slope * interp_index
