@@ -1,12 +1,12 @@
 """test_tidegauge.py - unit tests for tidegauge module"""
 
-import pkg_resources as pkgr
+from importlib_resources import files
 import xarray as xr
 import numpy as np
 from momlevel import tidegauge
 
 ds_nwa = xr.open_dataset(
-    pkgr.resource_filename("momlevel", "resources/NWA12_sample_grid_data.nc")
+    str(files("momlevel.resources") / "NWA12_sample_grid_data.nc")
 )
 
 
