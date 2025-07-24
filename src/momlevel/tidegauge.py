@@ -2,8 +2,8 @@
 
 import os
 import pandas as pd
-import pkg_resources as pkgr
 import xarray as xr
+from importlib_resources import files
 from momlevel.util import geolocate_points
 from momlevel.util import tile_nominal_coords
 from momlevel.util import validate_tidegauge_data
@@ -123,9 +123,9 @@ def extract_tidegauge(
     # Get pd.DataFrame of target locations. This DataFrame must contain columns
     # named `name`, `lat`, and `lon`
     if csv == "us":
-        csv = pkgr.resource_filename("momlevel", "resources/us_tide_gauges.csv")
+        csv = str(files("momlevel.resources") / "us_tide_gauges.csv")
     elif csv == "global":
-        csv = pkgr.resource_filename("momlevel", "resources/global_tide_gauges.csv")
+        csv = str(files("momlevel.resources") / "global_tide_gauges.csv")
     else:
         assert os.path.exists(csv)
 
