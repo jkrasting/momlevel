@@ -1,4 +1,4 @@
-""" trend.py - utilities for working with trends """
+"""trend.py - utilities for working with trends"""
 
 import warnings
 import cftime
@@ -17,7 +17,7 @@ __all__ = [
 ]
 
 
-def broadcast_trend(slope, dim_arr):
+def broadcast_trend(slope, dim_arr, subtract_time_zero=False):
     """Function to broadcast a trend along a dimension
 
     This function broadcasts a trend against a dimension to obtain a
@@ -32,6 +32,9 @@ def broadcast_trend(slope, dim_arr):
         Xarray's default time units of [ns] wil be assumed
     dim_arr : xarray.core.dataarray.DataArray
         Dimension array, e.g. time axis
+    subtract_time_zero : bool
+        If True, return anomalies relative to first time value
+        By default, False.
 
     Returns
     -------
@@ -99,7 +102,14 @@ def broadcast_trend(slope, dim_arr):
     interp_index = get_clean_interp_index(dim_arr, dim_name)
     interp_index = xr.DataArray(interp_index, coords={dim_name: dim_arr[dim_name]})
 
-    return slope * interp_index
+    result = slope * interp_index
+
+    # Subtract first time step if asked to
+    if subtract_time_zero:
+        tdim = "time"
+        result = result - result.isel({tdim: 0})
+
+    return result
 
 
 def time_conversion_factor(src, dst, days_per_month=30.417, days_per_year=365.0):
@@ -193,9 +203,9 @@ def _detrend_array(arr, dim="time", order=1, mode="remove"):
 
     # correct the name and attributes
     result.attrs = arr.attrs
-    result.attrs[
-        "detrend_comment"
-    ] = f"detrended using momlevel (mode={mode}) with m={slope} and b={intercept}"
+    result.attrs["detrend_comment"] = (
+        f"detrended using momlevel (mode={mode}) with m={slope} and b={intercept}"
+    )
     result = result.rename(varname)
 
     return result
